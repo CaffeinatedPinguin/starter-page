@@ -1,0 +1,26 @@
+{
+  "title": "Starter Page",
+  "heading": "Welcome",
+  "subtitle": "Pick a destination",
+  "defaultPage": "categorized",
+  "categories": {
+    "General": { "icon": "home", "color": "#5b8def" },
+    "Resources": { "icon": "file-description", "color": "#3ec9c9" },
+    "Development": { "icon": "tools", "color": "#9a7bf0" },
+    "News": { "icon": "world", "color": "#e05c8a" }
+  },
+  "links": [
+    { "id": "home", "name": "Home", "url": "/", "icon": "home", "category": "General", "order": 1 },
+    { "id": "status", "name": "Status", "url": "https://status.example.com/", "icon": "activity", "category": "General", "order": 2 },
+
+    { "id": "docs", "name": "Documentation", "url": "https://docs.example.com/", "icon": "file-description", "tooltip": "Guides and reference", "category": "Resources", "order": 1 },
+    { "id": "wiki", "name": "Wiki", "url": "https://wiki.example.com/", "icon": "notes", "category": "Resources", "order": 2 },
+
+    { "id": "repository", "name": "Repository", "url": "https://git.example.com/", "icon": "github", "category": "Development", "order": 1 },
+    { "id": "ci", "name": "CI", "url": "https://ci.example.com/", "icon": "settings", "category": "Development", "order": 2 },
+    { "id": "registry", "name": "Registry", "url": "https://registry.example.com/", "icon": "docker", "category": "Development", "order": 3 },
+
+    { "id": "news", "name": "News", "url": "https://news.example.com/", "icon": "reddit", "category": "News", "order": 1 },
+    { "id": "forum", "name": "Forum", "url": "https://forum.example.com/", "icon": "world", "category": "News", "order": 2 }
+  ]
+}

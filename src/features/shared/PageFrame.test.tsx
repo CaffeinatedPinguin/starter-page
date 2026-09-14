@@ -1,0 +1,42 @@
+import {render, screen, cleanup} from '@testing-library/react';
+import {afterEach, describe, expect, it} from 'vitest';
+import {PageFrame} from './PageFrame';
+import type {StarterPageConfig} from '@/models/starter-page';
+
+afterEach(cleanup);
+
+const config: StarterPageConfig = {
+  title: 'Example',
+  heading: 'Heading',
+  subtitle: 'Subtitle',
+  links: [],
+};
+
+function renderFrame() {
+  return render(
+    <PageFrame page="categorized" config={config}>
+      {() => null}
+    </PageFrame>,
+  );
+}
+
+describe('PageFrame search shortcut', () => {
+  it('focuses the search field on Ctrl+F', () => {
+    renderFrame();
+    const input = screen.getByLabelText('Szukaj linków');
+    expect(document.activeElement).not.toBe(input);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', {key: 'f', ctrlKey: true, cancelable: true}));
+
+    expect(document.activeElement).toBe(input);
+  });
+
+  it('focuses the search field on Cmd+F', () => {
+    renderFrame();
+    const input = screen.getByLabelText('Szukaj linków');
+
+    window.dispatchEvent(new KeyboardEvent('keydown', {key: 'F', metaKey: true, cancelable: true}));
+
+    expect(document.activeElement).toBe(input);
+  });
+});

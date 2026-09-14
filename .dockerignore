@@ -1,0 +1,11 @@
+node_modules
+build
+tmp
+coverage
+*.local
+*.local.js
+config.local.json
+.git
+.github
+.idea
+docs

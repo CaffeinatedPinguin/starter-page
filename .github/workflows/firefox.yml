@@ -1,0 +1,152 @@
+name: firefox
+
+# Manual, self-distributed (UNLISTED) Firefox submission.
+#
+# This workflow is intentionally manual and isolated from ci.yml/release.yml:
+# it resolves the NEWEST stable vX.Y.Z tag itself, builds from exactly that tag
+# and submits addon + source to Mozilla AMO. It never creates a GitHub Release,
+# never attaches an XPI and never publishes a Docker image. The signed XPI is
+# downloaded and attached to the existing GitHub Release by a human.
+on:
+  workflow_dispatch:
+
+# One AMO submission at a time; an in-flight submission is never cancelled.
+concurrency:
+  group: starter-page-firefox
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    name: Firefox / build and submit to AMO
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Resolve newest stable release tag
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$(git tag --list 'v*' --sort=-version:refname \
+            | sed -n -E '/^v[0-9]+\.[0-9]+\.[0-9]+$/ {p;q;}')"
+          if [[ -z "$tag" ]]; then
+            echo "::error::no stable vX.Y.Z release tag found"
+            exit 1
+          fi
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "Selected Firefox release: ${tag}"
+
+      - name: Checkout selected release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.release.outputs.tag }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Verify tag matches package.json version
+        shell: bash
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          if [[ "${TAG}" != "v${version}" ]]; then
+            echo "::error::selected tag ${TAG} does not match package.json version ${version} (expected tag v${version})"
+            exit 1
+          fi
+          echo "Version check passed: ${TAG} == v${version}"
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.20.0
+
+      - name: Cache pnpm store
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-starter-page-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-starter-page-${{ runner.os }}-
+
+      - name: Enable corepack
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@12.2.1 --activate
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack pnpm install --frozen-lockfile
+
+      - name: Test
+        shell: bash
+        run: corepack pnpm test
+
+      - name: Lint
+        shell: bash
+        run: corepack pnpm lint
+
+      # Canonical Node AMO tooling. amo:build performs the production build and
+      # emits versioned addon/source ZIPs; amo:check validates that exact addon —
+      # including the authoritative `web-ext lint` (a linter error fails it). No
+      # frontend build or linter is duplicated in YAML.
+      - name: Build and validate AMO packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack pnpm amo:build
+          corepack pnpm amo:check
+
+      # Submit exactly the validated addon: extract it flat so web-ext sees the
+      # same bytes as the package amo:check accepted (manifest.json at root).
+      - name: Extract validated addon package
+        shell: bash
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          addon="build/starter-page-v${version}-addon.zip"
+          dest="${RUNNER_TEMP}/firefox-addon"
+          test -f "$addon"
+          rm -rf "$dest"
+          mkdir -p "$dest"
+          unzip -q "$addon" -d "$dest"
+          test -f "$dest/manifest.json"
+          test -f "$dest/index.html"
+          test -f "$dest/options.html"
+
+      - name: Submit to AMO (unlisted / self-distributed)
+        shell: bash
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          WEB_EXT_NO_INPUT: "true"
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          mkdir -p "$RUNNER_TEMP/web-ext-artifacts"
+          corepack pnpm exec web-ext sign \
+            --source-dir "$RUNNER_TEMP/firefox-addon" \
+            --channel=unlisted \
+            --upload-source-code="build/starter-page-v${version}-source.zip" \
+            --api-key="$AMO_JWT_ISSUER" \
+            --api-secret="$AMO_JWT_SECRET" \
+            --approval-timeout=0 \
+            --artifacts-dir="$RUNNER_TEMP/web-ext-artifacts"
+          # Any signed XPI returned by AMO stays in $RUNNER_TEMP and is deleted
+          # with the runner. Nothing is uploaded or attached to a release.

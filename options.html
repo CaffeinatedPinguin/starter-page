@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link href="/logo/favicon.svg" rel="icon" type="image/svg+xml"/>
+    <link href="/logo/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+    <title>Starter Page — ustawienia</title>
+</head>
+<body>
+<div id="options-root">
+    <header class="options-header">
+        <h1>Starter Page</h1>
+        <p class="options-header__subtitle">Ustawienia strony startowej i dodatku.</p>
+    </header>
+
+    <section class="panel" hidden id="config-section">
+        <h2>Konfiguracja</h2>
+        <p class="panel__hint">Wczytaj plik <code>config.json</code>. Dane są sprawdzane przed zapisem.</p>
+        <div class="field">
+            <label for="config-file">Plik konfiguracji</label>
+            <input accept="application/json,.json" id="config-file" type="file"/>
+        </div>
+        <div class="actions">
+            <button class="button" id="config-export" type="button">Eksportuj konfigurację</button>
+        </div>
+    </section>
+
+    <section class="panel" hidden id="web-config-note">
+        <h2>Konfiguracja</h2>
+        <p class="panel__hint">
+            Na stronie web konfiguracja pochodzi z serwera (<code>/config.json</code>)
+            i nie jest przechowywana lokalnie.
+        </p>
+    </section>
+
+    <section class="panel">
+        <h2>Preferencje</h2>
+        <p class="panel__hint">Dotyczy tylko tej przeglądarki.</p>
+
+        <div class="field">
+            <label for="pref-entry-page">Strona początkowa</label>
+            <p class="field__hint">Starter Page otwierany jako pierwszy po wejściu.</p>
+            <select id="pref-entry-page">
+                <option value="">(domyślny z konfiguracji)</option>
+                <option value="categorized">categorized</option>
+            </select>
+        </div>
+
+        <div class="actions">
+            <button class="button button--primary" id="pref-save" type="button">Zapisz</button>
+            <button class="button" id="pref-show" type="button">Odśwież z zapisanych</button>
+            <button class="button button--danger" id="pref-reset" type="button">Wyczyść</button>
+        </div>
+    </section>
+
+    <div id="options-status" role="status" aria-live="polite"></div>
+</div>
+<script src="/src/options/main.tsx" type="module"></script>
+</body>
+</html>

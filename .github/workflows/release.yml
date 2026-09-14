@@ -1,0 +1,271 @@
+name: release
+
+# Tag-driven release: build the frontend ONCE, then derive every artifact from
+# that single build. A Docker image is pushed to GHCR, the Chromium addon is
+# packaged as a zip asset, and a GitHub Release is created with the commit list
+# since the previous tag. Nothing is submitted to Firefox here.
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+# Shares the SHA-based concurrency group with ci.yml so a release tag pushed for
+# the same commit supersedes (cancels) the CI build. Releases opt into
+# cancel-in-progress; CI does not, so a release is never cancelled by CI.
+concurrency:
+  group: starter-page-${{ github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  starter-page:
+    name: starter-page / build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.20.0
+
+      # package.json is the canonical application version. The git tag must be
+      # exactly v<package.json.version>; never derive or rewrite a version.
+      - name: Validate tag against package.json version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          expected="v${version}"
+          if [[ "${GITHUB_REF_NAME}" != "${expected}" ]]; then
+            echo "::error::release tag ${GITHUB_REF_NAME} does not match package.json version ${version} (expected tag ${expected})"
+            exit 1
+          fi
+          echo "Release tag ${GITHUB_REF_NAME} matches package.json version ${version}."
+
+      - name: Cache pnpm store
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-starter-page-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-starter-page-${{ runner.os }}-
+
+      - name: Enable corepack
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@12.2.1 --activate
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack pnpm install --frozen-lockfile
+
+      - name: Test
+        shell: bash
+        run: corepack pnpm test
+
+      - name: Lint
+        shell: bash
+        run: corepack pnpm lint
+
+      - name: Build (single shared frontend build)
+        shell: bash
+        run: corepack pnpm build
+
+      - name: Upload shared frontend build
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: starter-page-dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 1
+
+  addon-package:
+    name: starter-page / package Chromium addon
+    needs: starter-page
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.20.0
+
+      - name: Enable corepack
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@12.2.1 --activate
+
+      - name: Download shared frontend build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: starter-page-dist
+          path: dist
+
+      # Canonical Node packaging + validation (scripts/build.mjs) reuses the
+      # shared dist/ -- the frontend is NOT built a second time. The same
+      # validator used by CI independently guarantees a release-safe addon:
+      # manifest v3, New Tab override, storage permission, version synced from
+      # package.json (== tag), required runtime files, and no runtime config.
+      - name: Package and validate addon from the shared build
+        shell: bash
+        run: corepack pnpm build:addon
+
+      - name: Name the Chromium addon ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp build/starter-page-addon.zip "starter-page-${GITHUB_REF_NAME}-chromium.zip"
+          test -f "starter-page-${GITHUB_REF_NAME}-chromium.zip"
+
+      - name: Upload addon zip
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: starter-page-chromium-${{ github.ref_name }}
+          path: starter-page-${{ github.ref_name }}-chromium.zip
+          if-no-files-found: error
+          retention-days: 1
+
+  docker:
+    name: starter-page / build and publish image
+    needs: starter-page
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Download shared frontend build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: starter-page-dist
+          path: dist
+
+      - name: Set image reference
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "tag=ghcr.io/${owner}/starter-page:${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+
+      - name: Build and publish image (reuses the shared build)
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: Dockerfile
+          target: runtime-prebuild
+          pull: true
+          push: true
+          tags: ${{ steps.image.outputs.tag }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ github.ref_name }}
+          cache-from: type=gha,scope=docker-${{ github.repository }}-starter-page
+          cache-to: type=gha,scope=docker-${{ github.repository }}-starter-page,mode=max
+          provenance: false
+          sbom: false
+
+  release:
+    name: GitHub release
+    needs: [starter-page, addon-package, docker]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Download addon zip
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: starter-page-chromium-${{ github.ref_name }}
+          path: .
+
+      - name: Build release notes
+        shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          image="ghcr.io/${owner}/starter-page"
+          previous="$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)"
+          {
+            echo "## Changes"
+            echo
+            if [[ -n "$previous" ]]; then
+              range="${previous}..${TAG}"
+              echo "Commits since \`${previous}\`:"
+            else
+              range="${TAG}"
+              echo "Commits:"
+            fi
+            echo
+            if git log --oneline --no-decorate "$range" | grep -q .; then
+              git log --oneline --no-decorate "$range" | sed 's/^/- /'
+            else
+              echo "- No commits recorded for this range."
+            fi
+            echo
+            echo "## Artifacts"
+            echo
+            echo "- Container image: \`${image}:${TAG}\`"
+            echo "- Chromium addon: attached \`starter-page-${TAG}-chromium.zip\`"
+          } > release-notes.md
+
+      - name: Create GitHub release
+        shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" "starter-page-${TAG}-chromium.zip" \
+            --verify-tag \
+            --title "$TAG" \
+            --notes-file release-notes.md
