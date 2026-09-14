@@ -4,8 +4,8 @@ import {PageHeader} from './PageHeader';
 
 afterEach(cleanup);
 
-function renderHeader() {
-  return render(<PageHeader title="Example" query="" onQueryChange={() => {}}/>);
+function renderHeader(incognito = false) {
+  return render(<PageHeader title="Example" query="" onQueryChange={() => {}} incognito={incognito}/>);
 }
 
 describe('PageHeader', () => {
@@ -23,5 +23,15 @@ describe('PageHeader', () => {
   it('does not autofocus the search field on mount', () => {
     renderHeader();
     expect(document.activeElement).not.toBe(screen.getByLabelText('Szukaj linków'));
+  });
+
+  it('shows no incognito badge by default', () => {
+    renderHeader();
+    expect(screen.queryByText('Okno prywatne')).toBeNull();
+  });
+
+  it('shows the incognito badge in a private context', () => {
+    renderHeader(true);
+    expect(screen.getByText('Okno prywatne')).not.toBeNull();
   });
 });

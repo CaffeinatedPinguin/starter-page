@@ -5,8 +5,8 @@
 @import '@fontsource/manrope/latin-ext-600.css';
 
 /**
- * Semantic design tokens. Dark-first (primary reference); light values are
- * re-declared coherently rather than inverted, following prefers-color-scheme.
+ * Semantic design tokens for the single dark theme. There is deliberately no
+ * light variant and no prefers-color-scheme switching.
  */
 :root {
     --bg: #080b14;
@@ -34,24 +34,9 @@
     --radius-pill: 999px;
 
     --page-pad: 24px;
-    --header-gap: 16px;
-    --row-height: 34px;
+    --header-gap: 48px;
+    --row-height: 42px;
+    --list-gap: 6px;
 
     --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-}
-
-@media (prefers-color-scheme: light) {
-    :root {
-        --bg: #f6f7fb;
-        --bg-accent: #e9ecf5;
-        --surface: #ffffff;
-        --surface-hover: #eceffa;
-        --text: #1a2030;
-        --text-muted: #5c6577;
-        --border: #d9deea;
-        --focus: #3b5bdb;
-
-        --search-match: rgba(59, 91, 219, 0.14);
-        --search-dimmed: 0.45;
-    }
 }

@@ -1,9 +1,12 @@
 import {render, screen, cleanup} from '@testing-library/react';
-import {afterEach, describe, expect, it} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {PageFrame} from './PageFrame';
 import type {StarterPageConfig} from '@/models/starter-page';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 const config: StarterPageConfig = {
   title: 'Example',
@@ -38,5 +41,21 @@ describe('PageFrame search shortcut', () => {
     window.dispatchEvent(new KeyboardEvent('keydown', {key: 'F', metaKey: true, cancelable: true}));
 
     expect(document.activeElement).toBe(input);
+  });
+});
+
+describe('PageFrame incognito badge', () => {
+  it('shows the badge when the add-on runs in incognito', () => {
+    vi.stubGlobal('browser', {extension: {inIncognitoContext: true}});
+
+    renderFrame();
+
+    expect(screen.getByText('Okno prywatne')).not.toBeNull();
+  });
+
+  it('hides the badge in a normal context', () => {
+    renderFrame();
+
+    expect(screen.queryByText('Okno prywatne')).toBeNull();
   });
 });

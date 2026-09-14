@@ -2,6 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import type {PageId, StarterPageConfig} from '@/models/starter-page';
+import {isIncognitoContext} from '@/config/environment';
 import {PageHeader} from './PageHeader';
 
 /** Formats a date as dd/mm/yyyy (zero-padded, locale-independent). */
@@ -52,6 +53,7 @@ export function PageFrame({
           query={query}
           onQueryChange={setQuery}
           searchRef={searchRef}
+          incognito={isIncognitoContext()}
         />
         <div className="page-body">{children(query)}</div>
         <footer className="page-footer">{formatDate(new Date())}</footer>
