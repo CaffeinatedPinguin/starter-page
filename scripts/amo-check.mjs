@@ -9,8 +9,8 @@
  *
  * Usage:
  *   node scripts/amo-check.mjs
- *   node scripts/amo-check.mjs --target build/starter-page-v0.7.0-addon.zip
- *   node scripts/amo-check.mjs --version v0.7.0
+ *   node scripts/amo-check.mjs --target build/starter-page-vX.Y.Z-addon.zip
+ *   node scripts/amo-check.mjs --version vX.Y.Z
  *
  * Exit code: 0 = no blocking failures, 1 = at least one FAIL.
  */

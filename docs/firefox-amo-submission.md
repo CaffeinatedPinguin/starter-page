@@ -64,8 +64,10 @@ brakuje wyłącznie rzeczy submissionowych (source archive + build instructions,
   ładniejszy semantycznie, ale niekonieczny.
 - **CI nie podpisuje addonu** (`release.yml`) — dla self-distributed wymagane
   `web-ext sign` / API; opublikowany zip jest niepodpisany.
-- Repo `manifest.json` ma wersję `0.1.0`, a `package.json` `0.7.0`; CI nadpisuje wersję z
-  tagu — kosmetyka.
+- `manifest.json` i `package.json` są trzymane w tej samej wersji (podbijaj oba
+  przez `pnpm version:patch`). `release.yml` wymaga tagu `v<wersja>`, a przy
+  pakowaniu `scripts/build.mjs` weryfikuje zgodność i synchronizuje wersję
+  manifestu z `package.json`.
 
 ## Koszty
 
@@ -132,7 +134,7 @@ Mapowanie: `AMO_JWT_ISSUER` → `web-ext --api-key`, `AMO_JWT_SECRET` →
 ## Checklist przed każdym release
 
 ```
-[ ] wersja zaktualizowana w package.json i manifest.json; tag = v<wersja> (pilnuje tego release.yml)
+[ ] wersja podbita przez `pnpm version:patch` (package.json + manifest.json); tag = v<wersja>
 [ ] manifest.json poprawny (MV3, gecko.id, strict_min_version)
 [ ] data_collection_permissions.required = ["none"]
 [ ] tylko wymagane uprawnienia (storage; brak host_permissions)

@@ -82,6 +82,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Node 22.20.0's bundled corepack maps pnpm >= 6 to ./bin/pnpm.cjs,
+          # which pnpm 12 no longer ships (it uses ./bin/pnpm.mjs). Pin corepack
+          # explicitly instead of installing the floating `corepack@latest`.
+          npm install -g corepack@0.36.0
           corepack enable
           corepack prepare pnpm@12.2.1 --activate
 

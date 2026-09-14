@@ -125,6 +125,7 @@ a complete example.
 | `pnpm test:watch` | Vitest in watch mode. |
 | `pnpm lint` | ESLint. |
 | `pnpm typecheck` | `tsc -b --noEmit`. |
+| `pnpm version:patch` | Bump the version in `package.json` + `manifest.json` (`:minor` / `:major` too). |
 | `pnpm amo:build` | Versioned AMO artifacts: `build/starter-page-v<version>-{addon,source}.zip`. |
 | `pnpm amo:check` | AMO readiness validation of the built add-on (also runs `web-ext lint`). |
 

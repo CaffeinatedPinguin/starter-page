@@ -1,6 +1,6 @@
 {
   "name": "@homelab/starter-page",
-  "version": "0.7.0",
+  "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
   "packageManager": "pnpm@12.2.1",
@@ -20,6 +20,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "version:patch": "node scripts/bump-version.mjs patch",
+    "version:minor": "node scripts/bump-version.mjs minor",
+    "version:major": "node scripts/bump-version.mjs major",
     "amo:build": "node scripts/build.mjs addon && node scripts/amo-source-archive.mjs",
     "amo:check": "node scripts/amo-check.mjs"
   },

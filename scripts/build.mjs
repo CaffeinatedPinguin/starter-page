@@ -56,9 +56,16 @@ async function buildAddon() {
     await cp(join(root, 'dist'), out, {recursive: true});
 
     // Keep the packaged manifest version in lockstep with package.json so a
-    // local addon build never drifts from the release version.
+    // local addon build never drifts from the release version. Refuse to build
+    // when the two disagree — bump both with `pnpm version:patch`.
     const manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8'));
     const {version} = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
+    if (manifest.version !== version) {
+        throw new Error(
+            `manifest.json version (${manifest.version}) does not match package.json (${version}) — ` +
+            'bump both with `pnpm version:patch` (or minor/major)',
+        );
+    }
     manifest.version = version;
     await writeFile(join(out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 
