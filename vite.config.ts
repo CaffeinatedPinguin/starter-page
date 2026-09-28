@@ -2,6 +2,7 @@ import type {Plugin} from 'vite';
 import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
 import Icons from '@iconify/unplugin/vite';
+import {rmSync} from 'node:fs';
 import {readdir, rm} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {fileURLToPath, URL} from 'node:url';
@@ -38,22 +39,23 @@ function excludePrivatePublicConfig(): Plugin {
  * @iconify/unplugin caches generated components and their helper assets under
  * node_modules/.iconify-unplugin. If that cache is partially present (e.g. after
  * a package-manager prune), a cached component can reference a missing helper
- * and the build fails with "Asset not found in cache". Wiping the cache at the
- * start of every build/dev run forces a clean regeneration; it is cheap.
+ * and the build fails with "Asset not found in cache". Wiping the cache forces a
+ * clean regeneration; it is cheap.
+ *
+ * The wipe is synchronous and runs in the early `config` hook. `buildStart` is
+ * a *parallel* hook, so an async delete there races the plugin writing its cache
+ * — which surfaces intermittently on CI as "Asset not found in cache:
+ * /~iconify/_helpers/innerhtml.js".
  */
 function resetIconifyCache(): Plugin {
     const cacheDirectory = fileURLToPath(
         new URL('./node_modules/.iconify-unplugin', import.meta.url),
     );
-    const clear = () => rm(cacheDirectory, {recursive: true, force: true});
 
     return {
         name: 'reset-iconify-cache',
-        async buildStart() {
-            await clear();
-        },
-        async configureServer() {
-            await clear();
+        config() {
+            rmSync(cacheDirectory, {recursive: true, force: true});
         },
     };
 }
