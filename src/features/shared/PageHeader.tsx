@@ -12,14 +12,12 @@ export function PageHeader({
   title,
   query,
   onQueryChange,
-  onSearchSubmit,
   searchRef,
   incognito = false,
 }: {
   title: string;
   query: string;
   onQueryChange: (value: string) => void;
-  onSearchSubmit: (query: string) => void;
   searchRef?: RefObject<HTMLInputElement | null>;
   incognito?: boolean;
 }) {
@@ -28,12 +26,7 @@ export function PageHeader({
       <h1 className="visually-hidden">{title}</h1>
       <Clock/>
       <div className="page-header__search">
-        <SearchBox
-          value={query}
-          onChange={onQueryChange}
-          onSubmit={onSearchSubmit}
-          inputRef={searchRef}
-        />
+        <SearchBox value={query} onChange={onQueryChange} inputRef={searchRef}/>
       </div>
       {incognito ? <span className="page-header__badge">Okno prywatne</span> : null}
     </header>

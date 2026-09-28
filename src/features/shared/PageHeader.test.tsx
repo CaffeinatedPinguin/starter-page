@@ -1,20 +1,18 @@
-import {render, screen, cleanup, fireEvent} from '@testing-library/react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {render, screen, cleanup} from '@testing-library/react';
+import {afterEach, describe, expect, it} from 'vitest';
 import {PageHeader} from './PageHeader';
 
 afterEach(cleanup);
 
-function renderHeader(incognito = false, onSearchSubmit = vi.fn()) {
-  render(
+function renderHeader(incognito = false) {
+  return render(
     <PageHeader
       title="Example"
       query=""
       onQueryChange={() => {}}
-      onSearchSubmit={onSearchSubmit}
       incognito={incognito}
     />,
   );
-  return onSearchSubmit;
 }
 
 describe('PageHeader', () => {
@@ -26,25 +24,9 @@ describe('PageHeader', () => {
   });
 
   it('renders the clock and search field', () => {
-    const {container} = render(
-      <PageHeader title="Example" query="" onQueryChange={() => {}} onSearchSubmit={() => {}}/>,
-    );
+    const {container} = renderHeader();
     expect(container.querySelector('.page-header__clock')).not.toBeNull();
     expect(screen.getByLabelText('Szukaj linków')).not.toBeNull();
-  });
-
-  it('submits the current query through the form', () => {
-    const onSubmit = vi.fn();
-    render(
-      <PageHeader
-        title="Example"
-        query="github"
-        onQueryChange={() => {}}
-        onSearchSubmit={onSubmit}
-      />,
-    );
-    fireEvent.submit(screen.getByLabelText('Szukaj linków').closest('form') as HTMLFormElement);
-    expect(onSubmit).toHaveBeenCalledWith('github');
   });
 
   it('does not autofocus the search field on mount', () => {
