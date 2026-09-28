@@ -7,6 +7,8 @@
     "General": { "icon": "home", "color": "#5b8def" },
     "Resources": { "icon": "file-description", "color": "#3ec9c9" },
     "Development": { "icon": "tools", "color": "#9a7bf0" },
+    "Infrastructure": { "icon": "server", "color": "#43c26b" },
+    "Media": { "icon": "device-tv", "color": "#e08a3c" },
     "News": { "icon": "world", "color": "#e05c8a" }
   },
   "links": [
@@ -15,10 +17,26 @@
 
     { "id": "docs", "name": "Documentation", "url": "https://docs.example.com/", "icon": "file-description", "description": "Przewodniki i dokumentacja", "category": "Resources", "order": 1 },
     { "id": "wiki", "name": "Wiki", "url": "https://wiki.example.com/", "icon": "notes", "description": "Baza wiedzy", "category": "Resources", "order": 2 },
+    { "id": "bookmarks", "name": "Bookmarks", "url": "https://bookmarks.example.com/", "icon": "bookmark", "description": "Zakładki", "category": "Resources", "order": 3 },
 
     { "id": "repository", "name": "Repository", "url": "https://git.example.com/", "icon": "github", "description": "Repozytoria", "category": "Development", "order": 1 },
-    { "id": "ci", "name": "CI", "url": "https://ci.example.com/", "icon": "settings", "description": "Budowanie i testy", "category": "Development", "order": 2 },
-    { "id": "registry", "name": "Registry", "url": "https://registry.example.com/", "icon": "docker", "description": "Obrazy kontenerów", "category": "Development", "order": 3 },
+    { "id": "gitlab", "name": "GitLab", "url": "https://gitlab.example.com/", "icon": "gitlab", "description": "Repozytoria GitLab", "category": "Development", "order": 2 },
+    { "id": "ci", "name": "CI", "url": "https://ci.example.com/", "icon": "settings", "description": "Budowanie i testy", "category": "Development", "order": 3 },
+    { "id": "registry", "name": "Registry", "url": "https://registry.example.com/", "icon": "docker", "description": "Obrazy kontenerów", "category": "Development", "order": 4 },
+    { "id": "packages", "name": "Packages", "url": "https://packages.example.com/", "icon": "box", "description": "Pakiety i artefakty", "category": "Development", "order": 5 },
+    { "id": "pipeline", "name": "Pipeline", "url": "https://pipeline.example.com/", "icon": "timeline", "description": "Przepływy wdrożeniowe", "category": "Development", "order": 6 },
+    { "id": "monitoring", "name": "Monitoring", "url": "https://metrics.example.com/", "icon": "chart-line", "description": "Metryki i wykresy", "category": "Development", "order": 7 },
+    { "id": "logs", "name": "Logs", "url": "https://logs.example.com/", "icon": "file-description", "description": "Logi aplikacji", "category": "Development", "order": 8 },
+
+    { "id": "router", "name": "Router", "url": "https://router.example.com/", "icon": "router", "description": "Sieć domowa", "category": "Infrastructure", "order": 1 },
+    { "id": "proxmox", "name": "Proxmox", "url": "https://proxmox.example.com/", "icon": "proxmox", "description": "Maszyny wirtualne", "category": "Infrastructure", "order": 2 },
+    { "id": "storage", "name": "Storage", "url": "https://storage.example.com/", "icon": "database", "description": "Pamięć masowa", "category": "Infrastructure", "order": 3 },
+    { "id": "dns", "name": "DNS", "url": "https://dns.example.com/", "icon": "world", "description": "Rekordy i strefy", "category": "Infrastructure", "order": 4 },
+    { "id": "vpn", "name": "VPN", "url": "https://vpn.example.com/", "icon": "openvpn", "description": "Dostęp zdalny", "category": "Infrastructure", "order": 5 },
+
+    { "id": "video", "name": "Video", "url": "https://video.example.com/", "icon": "youtube", "description": "Filmy", "category": "Media", "order": 1 },
+    { "id": "music", "name": "Music", "url": "https://music.example.com/", "icon": "spotify", "description": "Muzyka", "category": "Media", "order": 2 },
+    { "id": "photos", "name": "Photos", "url": "https://photos.example.com/", "icon": "google-photos", "description": "Zdjęcia", "category": "Media", "order": 3 },
 
     { "id": "news", "name": "News", "url": "https://news.example.com/", "icon": "reddit", "description": "Nowości", "category": "News", "order": 1 },
     { "id": "forum", "name": "Forum", "url": "https://forum.example.com/", "icon": "world", "description": "Dyskusje", "category": "News", "order": 2 }

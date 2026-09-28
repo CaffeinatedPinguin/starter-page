@@ -259,20 +259,19 @@ main[data-page] {
 
 /* ---------------------------------------------------- categorized layout */
 
-/* Centered, wrapping columns: the group stays centered on wide screens and
-   collapses to fewer columns (never more than five) as space runs out. */
+/* Auto-fitting columns: the used tracks stay centered on the page, while a
+   category that wraps to a new row starts at the left edge of the group.
+   Empty tracks collapse, so fewer categories still center; at most 5 fit. */
 .category-grid {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 288px));
     justify-content: center;
+    align-items: start;
     gap: 40px;
 }
 
 .category {
-    flex: 1 1 240px;
     min-width: 0;
-    max-width: 288px;
 }
 
 .category__title {
