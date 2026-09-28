@@ -103,7 +103,7 @@ Load `build/addon/` as an unpacked extension, or install the released
 - `categories` — optional per-category `icon` and `color`.
 - `links[]` — shared link data every page renders (`LinkEntry`): a stable unique
   `id`, `name`, `url` (absolute `http(s)` or app-relative `/path`), and optional
-  `icon`, `tooltip`, `category`, `order`.
+  `icon`, `description`, `category`, `order`.
 
 A link is declared once and rendered by any page — never duplicated because
 pages display it differently. User preferences (`entryPage`) are kept strictly

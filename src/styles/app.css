@@ -22,13 +22,10 @@ body {
     font-size: 15px;
     line-height: 1.5;
     color: var(--text);
-    background-image:
-        radial-gradient(1100px 520px at 22% -8%, color-mix(in srgb, var(--bg-accent) 85%, transparent), transparent 70%),
-        radial-gradient(900px 480px at 100% 0%, color-mix(in srgb, var(--bg-accent) 55%, transparent), transparent 72%);
     -webkit-font-smoothing: antialiased;
 }
 
-/* The page fills the viewport so the footer can sit at the bottom. */
+/* The page fills the viewport. */
 #root {
     display: flex;
     flex-direction: column;
@@ -41,7 +38,7 @@ main[data-page],
     width: 100%;
     max-width: 1600px;
     margin: 0 auto;
-    padding: var(--page-pad);
+    padding: var(--page-pad-top) var(--page-pad) var(--page-pad);
 }
 
 main[data-page] {
@@ -55,6 +52,19 @@ main[data-page] {
     flex: 1 0 auto;
 }
 
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
 /* ---------------------------------------------------------------- header */
 
 .page-header {
@@ -62,36 +72,98 @@ main[data-page] {
     flex-direction: column;
     align-items: center;
     gap: var(--header-gap);
-    margin-bottom: 64px;
+    margin-bottom: 72px;
 }
 
-.page-header__brand {
+.page-header__datetime {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 16px;
-    min-width: 0;
+    gap: 12px;
+    text-align: center;
 }
 
-.page-header__logo {
-    display: block;
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
-    flex: 0 0 auto;
-}
-
-.page-header__title {
-    margin: 0;
-    font-size: 32px;
+.page-header__date {
+    position: relative;
+    display: inline-block;
+    font-size: 13px;
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+}
+
+.page-header__date:hover,
+.page-header__date:focus-within {
     color: var(--text);
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
+}
+
+/* English translation, shown on hover/focus (native `title` is unreliable).
+   The top padding of the page leaves room above so it stays in the viewport. */
+.page-header__date::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--surface) 94%, black);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: normal;
+    text-transform: none;
     white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 120ms ease, visibility 120ms ease;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.page-header__date:hover::after,
+.page-header__date:focus-within::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* No hover on touch devices: the tooltip is pure noise there. */
+@media (hover: none) {
+    .page-header__date::after {
+        display: none;
+    }
+}
+
+/* Transparent native date input laid over the text: click opens the browser
+   picker without ever changing the displayed date. */
+.page-header__date-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.page-header__clock {
+    display: block;
+    font-size: clamp(44px, 6vw, 88px);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+.page-header__clock-seconds {
+    opacity: 0.55;
 }
 
 .page-header__search {
@@ -102,7 +174,7 @@ main[data-page] {
 
 .page-header__badge {
     position: absolute;
-    top: var(--page-pad);
+    top: var(--page-pad-top);
     right: var(--page-pad);
     padding: 6px 14px;
     border-radius: var(--radius-pill);
@@ -123,8 +195,9 @@ main[data-page] {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 0 14px;
-    height: 44px;
+    margin: 0;
+    padding: 0 16px;
+    height: 48px;
     background: color-mix(in srgb, var(--surface) 82%, transparent);
     border: 1px solid var(--border);
     border-radius: var(--radius-pill);
@@ -137,8 +210,15 @@ main[data-page] {
 }
 
 .search-box__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex: 0 0 auto;
     color: var(--text-muted);
+}
+
+.search-box__icon svg {
+    display: block;
 }
 
 .search-box__input {
@@ -179,44 +259,34 @@ main[data-page] {
 
 /* ---------------------------------------------------- categorized layout */
 
+/* Centered, wrapping columns: the group stays centered on wide screens and
+   collapses to fewer columns (never more than five) as space runs out. */
 .category-grid {
-    column-gap: 40px;
-    column-count: 4;
-}
-
-@media (max-width: 1200px) {
-    .category-grid {
-        column-count: 3;
-    }
-}
-
-@media (max-width: 900px) {
-    .category-grid {
-        column-count: 2;
-    }
-}
-
-@media (max-width: 600px) {
-    .category-grid {
-        column-count: 1;
-    }
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 40px;
 }
 
 .category {
-    break-inside: avoid;
-    margin-bottom: 56px;
+    flex: 1 1 240px;
+    min-width: 0;
+    max-width: 288px;
 }
 
 .category__title {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 9px;
     margin: 0 0 18px;
-    padding-bottom: 16px;
+    padding-bottom: 14px;
     border-bottom: 1px solid var(--border);
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--text);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
 }
 
 .category__label {
@@ -224,6 +294,14 @@ main[data-page] {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.category__dot {
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent, var(--accent-neutral));
 }
 
 .category__icon {
@@ -287,7 +365,7 @@ main[data-page] {
     border-radius: var(--radius-md);
     color: var(--text);
     text-decoration: none;
-    transition: background-color 100ms ease, color 100ms ease;
+    transition: background-color 100ms ease;
 }
 
 .link-item__anchor:hover {
@@ -299,6 +377,23 @@ main[data-page] {
     outline-offset: -2px;
 }
 
+.link-item__icon-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--surface) 88%, white 6%);
+    border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+    transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.link-item__anchor:hover .link-item__icon-tile {
+    background: color-mix(in srgb, var(--surface-hover) 88%, white 6%);
+}
+
 .link-item__icon {
     color: var(--text-muted);
 }
@@ -307,8 +402,25 @@ main[data-page] {
     color: var(--text);
 }
 
-.link-item__name {
+.link-item__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
     min-width: 0;
+}
+
+.link-item__name {
+    font-weight: 600;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.link-item__description {
+    font-size: 12.5px;
+    line-height: 1.3;
+    color: var(--text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -332,40 +444,43 @@ main[data-page] {
 @media (prefers-reduced-motion: reduce) {
     .search-box,
     .link-item__anchor,
+    .link-item__icon-tile,
     .app-icon--brand .app-icon__svg {
         transition: none;
     }
 }
 
-/* --------------------------------------------------------------- tooltip */
-
-.link-tooltip {
-    z-index: 20;
-    max-width: 18rem;
-    padding: 6px 10px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: color-mix(in srgb, var(--surface) 94%, black);
-    color: var(--text);
-    font-size: 13px;
-    line-height: 1.4;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-}
-
-.link-tooltip__arrow {
-    fill: color-mix(in srgb, var(--surface) 94%, black);
-}
-
 /* --------------------------------------------------------------- footer */
 
+/* Deliberately quiet signature: barely visible until hovered. */
 .page-footer {
-    margin-top: 40px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 72px;
+    padding-top: 20px;
+    border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
     color: var(--text-muted);
-    font-size: 12px;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.35;
+    transition: opacity 160ms ease;
+}
+
+.page-footer:hover {
+    opacity: 0.7;
+}
+
+.page-footer__logo {
+    width: 18px;
+    height: 18px;
+    opacity: 0.9;
+}
+
+.page-footer__name {
+    font-weight: 600;
 }
 
 /* ----------------------------------------------------------- setup notice */
@@ -383,6 +498,7 @@ main[data-page] {
 @media (max-width: 600px) {
     :root {
         --page-pad: 16px;
+        --page-pad-top: 32px;
         --row-height: 44px;
     }
 
@@ -391,27 +507,21 @@ main[data-page] {
         margin-bottom: 40px;
     }
 
-    .page-header__logo {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
+    .page-header__date {
+        font-size: 11px;
+        letter-spacing: 0.14em;
     }
 
-    .page-header__title {
-        font-size: 24px;
+    .page-header__clock {
+        font-size: clamp(40px, 16vw, 64px);
     }
 
     .search-box__hint {
         display: none;
     }
 
-    .category {
-        margin-bottom: 40px;
-    }
-
     .page-footer {
-        margin-top: 24px;
-        padding-top: 12px;
-        font-size: 11px;
+        margin-top: 40px;
+        font-size: 10px;
     }
 }

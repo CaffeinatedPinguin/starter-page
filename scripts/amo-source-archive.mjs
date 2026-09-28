@@ -90,7 +90,6 @@ for (const name of ['amo-submission.config.json', 'tmp', 'node_modules', 'dist',
 const LIBRARIES = {
   react: ['MIT', 'https://github.com/facebook/react'],
   'react-dom': ['MIT', 'https://github.com/facebook/react'],
-  '@radix-ui/react-tooltip': ['MIT', 'https://github.com/radix-ui/primitives'],
   '@fontsource/manrope': ['OFL-1.1', 'https://github.com/fontsource/fontsource'],
   '@iconify-json/tabler': ['MIT', 'https://github.com/tabler/tabler-icons'],
   '@iconify-json/logos': ['CC0-1.0', 'https://github.com/gilbarbara/logos'],

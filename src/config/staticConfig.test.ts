@@ -8,7 +8,7 @@ const validConfig = {
     defaultPage: 'categorized',
     links: [
         {id: 'home', name: 'Home', url: '/', icon: 'home', category: 'General', order: 1},
-        {id: 'status', name: 'Status', url: 'https://status.example.com/', tooltip: 'Service status'},
+        {id: 'status', name: 'Status', url: 'https://status.example.com/', description: 'Service status'},
         {id: 'dashboard', name: 'Dashboard', url: 'https://dashboard.example.com/'},
     ],
 };

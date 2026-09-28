@@ -1,23 +1,50 @@
-import {render, screen, cleanup} from '@testing-library/react';
-import {afterEach, describe, expect, it} from 'vitest';
+import {render, screen, cleanup, fireEvent} from '@testing-library/react';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {PageHeader} from './PageHeader';
 
 afterEach(cleanup);
 
-function renderHeader(incognito = false) {
-  return render(<PageHeader title="Example" query="" onQueryChange={() => {}} incognito={incognito}/>);
+function renderHeader(incognito = false, onSearchSubmit = vi.fn()) {
+  render(
+    <PageHeader
+      title="Example"
+      query=""
+      onQueryChange={() => {}}
+      onSearchSubmit={onSearchSubmit}
+      incognito={incognito}
+    />,
+  );
+  return onSearchSubmit;
 }
 
 describe('PageHeader', () => {
-  it('renders the config title as the visible page <h1> brand', () => {
+  it('keeps the config title as a visually hidden page <h1>', () => {
     renderHeader();
     const heading = screen.getByRole('heading', {level: 1});
     expect(heading.textContent).toBe('Example');
+    expect(heading.className).toContain('visually-hidden');
   });
 
-  it('renders exactly one labeled search field', () => {
-    renderHeader();
+  it('renders the clock and search field', () => {
+    const {container} = render(
+      <PageHeader title="Example" query="" onQueryChange={() => {}} onSearchSubmit={() => {}}/>,
+    );
+    expect(container.querySelector('.page-header__clock')).not.toBeNull();
     expect(screen.getByLabelText('Szukaj linków')).not.toBeNull();
+  });
+
+  it('submits the current query through the form', () => {
+    const onSubmit = vi.fn();
+    render(
+      <PageHeader
+        title="Example"
+        query="github"
+        onQueryChange={() => {}}
+        onSearchSubmit={onSubmit}
+      />,
+    );
+    fireEvent.submit(screen.getByLabelText('Szukaj linków').closest('form') as HTMLFormElement);
+    expect(onSubmit).toHaveBeenCalledWith('github');
   });
 
   it('does not autofocus the search field on mount', () => {

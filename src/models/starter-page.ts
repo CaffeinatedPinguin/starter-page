@@ -124,8 +124,8 @@ export interface LinkEntry {
     url: string;
     /** Optional icon; when absent pages render a neutral placeholder. */
     icon?: StarterPageIconName;
-    /** Optional tooltip. */
-    tooltip?: string;
+    /** Optional short one-line description shown under the link name. */
+    description?: string;
     /** Optional category/group. Absent means uncategorized. */
     category?: string;
     /**

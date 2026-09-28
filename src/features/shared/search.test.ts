@@ -27,7 +27,7 @@ describe('matchesLink', () => {
     name: 'Środek',
     url: 'https://lodz.example.com/cafe',
     category: 'Usługi',
-    tooltip: 'Łódź Café',
+    description: 'Unikalny opis',
   };
 
   it('matches accented query against accented name', () => {
@@ -47,8 +47,8 @@ describe('matchesLink', () => {
     expect(matchesLink(link, 'uslugi')).toBe(true);
   });
 
-  it('matches on tooltip', () => {
-    expect(matchesLink(link, 'cafe')).toBe(true);
+  it('matches on description', () => {
+    expect(matchesLink(link, 'unikalny')).toBe(true);
   });
 
   it('returns false for an empty query (neutral state)', () => {

@@ -24,11 +24,18 @@ describe('getCategoryAccent', () => {
 });
 
 describe('CategoryHeader', () => {
-  it('renders the category label as a heading with an accent icon', () => {
+  it('renders the category label as a heading with an accent dot by default', () => {
     const {container} = render(<CategoryHeader label="Group"/>);
     const heading = screen.getByRole('heading', {level: 2});
     expect(heading.textContent).toContain('Group');
+    expect(container.querySelector('.category__dot')).not.toBeNull();
+    expect(container.querySelector('.category__dot')?.getAttribute('style')).toContain('--accent');
+    expect(container.querySelector('.category__icon')).toBeNull();
+  });
+
+  it('renders a configured icon in place of the dot', () => {
+    const {container} = render(<CategoryHeader label="Group" icon="home"/>);
     expect(container.querySelector('.category__icon svg')).not.toBeNull();
-    expect(container.querySelector('.category__icon')?.getAttribute('style')).toContain('--accent');
+    expect(container.querySelector('.category__dot')).toBeNull();
   });
 });

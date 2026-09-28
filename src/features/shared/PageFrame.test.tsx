@@ -42,6 +42,26 @@ describe('PageFrame search shortcut', () => {
 
     expect(document.activeElement).toBe(input);
   });
+
+  it('focuses the search field on /', () => {
+    renderFrame();
+    const input = screen.getByLabelText('Szukaj linków');
+
+    window.dispatchEvent(new KeyboardEvent('keydown', {key: '/', cancelable: true}));
+
+    expect(document.activeElement).toBe(input);
+  });
+
+  it('does not intercept / typed inside the search field', () => {
+    renderFrame();
+    const input = screen.getByLabelText('Szukaj linków');
+    input.focus();
+
+    const event = new KeyboardEvent('keydown', {key: '/', bubbles: true, cancelable: true});
+    input.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
 });
 
 describe('PageFrame incognito badge', () => {

@@ -110,8 +110,8 @@ function parseLink(value: unknown, index: number): LinkEntry {
     const icon = parseIcon(link.icon, `links[${index}].icon`);
     if (icon !== undefined) linkEntry.icon = icon;
 
-    const tooltip = optionalString(link.tooltip, `links[${index}].tooltip`);
-    if (tooltip !== undefined) linkEntry.tooltip = tooltip;
+    const description = optionalString(link.description, `links[${index}].description`);
+    if (description !== undefined) linkEntry.description = description;
 
     const category = optionalString(link.category, `links[${index}].category`);
     if (category !== undefined) linkEntry.category = category;

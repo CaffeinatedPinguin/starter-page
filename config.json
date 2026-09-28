@@ -10,17 +10,17 @@
     "News": { "icon": "world", "color": "#e05c8a" }
   },
   "links": [
-    { "id": "home", "name": "Home", "url": "/", "icon": "home", "category": "General", "order": 1 },
-    { "id": "status", "name": "Status", "url": "https://status.example.com/", "icon": "activity", "category": "General", "order": 2 },
+    { "id": "home", "name": "Home", "url": "/", "icon": "home", "description": "Strona główna", "category": "General", "order": 1 },
+    { "id": "status", "name": "Status", "url": "https://status.example.com/", "icon": "activity", "description": "Stan usług", "category": "General", "order": 2 },
 
-    { "id": "docs", "name": "Documentation", "url": "https://docs.example.com/", "icon": "file-description", "tooltip": "Guides and reference", "category": "Resources", "order": 1 },
-    { "id": "wiki", "name": "Wiki", "url": "https://wiki.example.com/", "icon": "notes", "category": "Resources", "order": 2 },
+    { "id": "docs", "name": "Documentation", "url": "https://docs.example.com/", "icon": "file-description", "description": "Przewodniki i dokumentacja", "category": "Resources", "order": 1 },
+    { "id": "wiki", "name": "Wiki", "url": "https://wiki.example.com/", "icon": "notes", "description": "Baza wiedzy", "category": "Resources", "order": 2 },
 
-    { "id": "repository", "name": "Repository", "url": "https://git.example.com/", "icon": "github", "category": "Development", "order": 1 },
-    { "id": "ci", "name": "CI", "url": "https://ci.example.com/", "icon": "settings", "category": "Development", "order": 2 },
-    { "id": "registry", "name": "Registry", "url": "https://registry.example.com/", "icon": "docker", "category": "Development", "order": 3 },
+    { "id": "repository", "name": "Repository", "url": "https://git.example.com/", "icon": "github", "description": "Repozytoria", "category": "Development", "order": 1 },
+    { "id": "ci", "name": "CI", "url": "https://ci.example.com/", "icon": "settings", "description": "Budowanie i testy", "category": "Development", "order": 2 },
+    { "id": "registry", "name": "Registry", "url": "https://registry.example.com/", "icon": "docker", "description": "Obrazy kontenerów", "category": "Development", "order": 3 },
 
-    { "id": "news", "name": "News", "url": "https://news.example.com/", "icon": "reddit", "category": "News", "order": 1 },
-    { "id": "forum", "name": "Forum", "url": "https://forum.example.com/", "icon": "world", "category": "News", "order": 2 }
+    { "id": "news", "name": "News", "url": "https://news.example.com/", "icon": "reddit", "description": "Nowości", "category": "News", "order": 1 },
+    { "id": "forum", "name": "Forum", "url": "https://forum.example.com/", "icon": "world", "description": "Dyskusje", "category": "News", "order": 2 }
   ]
 }

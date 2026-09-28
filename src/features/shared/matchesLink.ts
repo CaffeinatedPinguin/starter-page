@@ -13,7 +13,7 @@ function linkContains(link: LinkEntry, needle: string): boolean {
     link.name,
     link.url,
     link.category ?? '',
-    link.tooltip ?? '',
+    link.description ?? '',
   ];
 
   return haystack.some((field) => normalizeSearchText(field).includes(needle));
@@ -30,7 +30,7 @@ export function createLinkMatcher(query: string): (link: LinkEntry) => boolean {
 
 /**
  * True when the link matches the query as a case- and diacritic-insensitive
- * substring of name, url, category or tooltip. An empty query is neutral
+ * substring of name, url, category or description. An empty query is neutral
  * (false). Prefer createLinkMatcher when matching multiple links.
  */
 export function matchesLink(link: LinkEntry, query: string): boolean {

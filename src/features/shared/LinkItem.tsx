@@ -1,6 +1,5 @@
 import type {LinkEntry} from '@/models/starter-page';
 import {AppIcon} from './AppIcon';
-import {LinkTooltip} from './LinkTooltip';
 
 /**
  * Single shared link row. The anchor is a real semantic `<a href>`: left
@@ -30,12 +29,17 @@ export function LinkItem({
 
   return (
     <li className={className}>
-      <LinkTooltip link={link}>
-        <a className="link-item__anchor" href={link.url}>
+      <a className="link-item__anchor" href={link.url}>
+        <span className="link-item__icon-tile">
           <AppIcon className="link-item__icon" name={link.icon}/>
+        </span>
+        <span className="link-item__text">
           <span className="link-item__name">{link.name}</span>
-        </a>
-      </LinkTooltip>
+          {link.description ? (
+            <span className="link-item__description">{link.description}</span>
+          ) : null}
+        </span>
+      </a>
     </li>
   );
 }

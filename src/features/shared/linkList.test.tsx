@@ -1,5 +1,4 @@
 import {render, screen, cleanup} from '@testing-library/react';
-import * as Tooltip from '@radix-ui/react-tooltip';
 import type {ReactElement} from 'react';
 import {afterEach, describe, expect, it} from 'vitest';
 import {LinkList} from './linkList';
@@ -8,13 +7,13 @@ import type {LinkEntry} from '@/models/starter-page';
 afterEach(cleanup);
 
 const links: LinkEntry[] = [
-  {id: 1, name: 'Środek', url: 'https://a.example/', tooltip: 'opis'},
+  {id: 1, name: 'Środek', url: 'https://a.example/', description: 'opis'},
   {id: 2, name: 'Beta', url: 'https://b.example/'},
   {id: 3, name: 'Café', url: 'https://c.example/', category: 'Łódź'},
 ];
 
 function renderList(node: ReactElement) {
-  return render(<Tooltip.Provider>{node}</Tooltip.Provider>);
+  return render(node);
 }
 
 describe('LinkList', () => {
