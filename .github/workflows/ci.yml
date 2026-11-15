@@ -27,7 +27,7 @@ jobs:
     name: verify
     permissions:
       contents: read
-    uses: CaffeinatedPinguin/templates/.github/workflows/node-ci.yml@948dde41a9689fadcd579e208fdacff326ba041b
+    uses: CaffeinatedPinguin/templates/.github/workflows/node-ci.yml@45b1bf131eb8f02a3c0f5aedb7c57db6d7a2292f
     with:
       # A manual run can verify an untrusted PR head without a pull_request trigger.
       ref: ${{ github.event.inputs.pr && format('refs/pull/{0}/head', github.event.inputs.pr) || '' }}
@@ -47,7 +47,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: CaffeinatedPinguin/templates/.github/workflows/docker.yml@948dde41a9689fadcd579e208fdacff326ba041b
+    uses: CaffeinatedPinguin/templates/.github/workflows/docker.yml@45b1bf131eb8f02a3c0f5aedb7c57db6d7a2292f
     with:
       image-name: starter-page
       # Build the Dockerfile and dist from the same commit as verify.
@@ -66,7 +66,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
-    uses: CaffeinatedPinguin/templates/.github/workflows/release.yml@948dde41a9689fadcd579e208fdacff326ba041b
+    uses: CaffeinatedPinguin/templates/.github/workflows/release.yml@45b1bf131eb8f02a3c0f5aedb7c57db6d7a2292f
     with:
       image-name: starter-page
       # The addon artifact uploaded by node-ci.yml lands in the workspace root.
