@@ -9,7 +9,7 @@ updates:
     schedule:
       interval: monthly
     cooldown:
-      default-days: 7   # semver-*-days is not supported by every ecosystem - here only default
+      default-days: 7   # per-type cooldown days are not supported by every ecosystem - here only default
     groups:
       actions:
         applies-to: version-updates
@@ -45,7 +45,6 @@ updates:
       interval: monthly
     cooldown:
       default-days: 7
-      semver-major-days: 14
     labels: [dependencies]
     commit-message:
       prefix: chore
