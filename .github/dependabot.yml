@@ -1,8 +1,9 @@
 # Low noise: once a month, minor+patch in one grouped PR per ecosystem,
 # each major separately (you read the changelog). Cooldown 7 days, 14 for majors
 # (new versions "sit" for a while - protection against freshly hijacked packages).
-# Security updates arrive immediately, regardless of schedule and groups.
+# Security updates arrive immediately, regardless of schedule.
 version: 2
+# security updates are grouped into one pull request per ecosystem; each major version update stays separate.
 updates:
   - package-ecosystem: github-actions
     directory: /
@@ -15,6 +16,9 @@ updates:
         applies-to: version-updates
         patterns: ["*"]
         update-types: [minor, patch]
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
     labels: [dependencies]
     commit-message:
       prefix: chore
@@ -33,6 +37,9 @@ updates:
         applies-to: version-updates
         patterns: ["*"]
         update-types: [minor, patch]
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
     labels: [dependencies]
     commit-message:
       prefix: chore
@@ -45,6 +52,10 @@ updates:
       interval: monthly
     cooldown:
       default-days: 7
+    groups:
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
     labels: [dependencies]
     commit-message:
       prefix: chore
