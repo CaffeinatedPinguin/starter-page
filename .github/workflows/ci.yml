@@ -1,184 +1,111 @@
 name: ci
 
-# Validate that everything builds on main: the single starter-page
-# implementation plus both deployment forms (addon package, Docker image).
+# Single thin caller for the project CI: verify (test, lint, build, addon
+# package), Docker image build with a smoke test, and the tag-driven release.
+# Tag runs share the SHA-based group with branch runs: a release tag cancels the
+# CI run for the same commit, while CI never cancels an in-progress release.
+# Pull requests are "Collaborators only"; PR runs never receive secrets, and the
+# registry push and release jobs only run for tags.
 on:
   push:
     branches: [main]
+    tags: ["v*.*.*"]
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
   workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number to verify (checked out as refs/pull/<n>/head)
+        required: false
+        default: ""
+        type: string
 
-# Shared SHA-based concurrency group with release.yml. The point is that a
-# release tag pushed for the same commit supersedes the CI build: the release
-# workflow opts into cancel-in-progress and cancels this run. CI itself does
-# NOT opt in, so a later CI run can never cancel an active release.
 concurrency:
-  group: starter-page-${{ github.sha }}
-  cancel-in-progress: false
+  group: ci-${{ github.sha }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/tags/') }}
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
-  # Cheap guard for the race where the release tag already points at this
-  # commit before CI starts evaluating. When it does, the release pipeline is
-  # authoritative and the expensive CI jobs are skipped.
-  guard:
-    name: starter-page / release-tag guard
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+  verify:
+    name: verify
     permissions:
       contents: read
-    outputs:
-      is_release: ${{ steps.check.outputs.is_release }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-
-      - name: Skip CI when a stable release tag points at this commit
-        id: check
-        shell: bash
-        run: |
-          set -euo pipefail
-          tag="$(git tag --points-at "$GITHUB_SHA" --list 'v*' --sort=-version:refname \
-            | sed -n -E '/^v[0-9]+\.[0-9]+\.[0-9]+$/ {p;q;}')"
-          if [[ -n "$tag" ]]; then
-            echo "Stable release tag ${tag} already points at ${GITHUB_SHA}; the release pipeline is authoritative. Skipping CI build."
-            echo "is_release=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "is_release=false" >> "$GITHUB_OUTPUT"
-          fi
-
-  starter-page:
-    name: starter-page / build and test
-    needs: guard
-    if: needs.guard.outputs.is_release != 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 1
-
-      - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 22.20.0
-
-      - name: Cache pnpm store
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.local/share/pnpm/store
-          key: pnpm-starter-page-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: pnpm-starter-page-${{ runner.os }}-
-
-      - name: Enable corepack
-        shell: bash
-        run: |
-          set -euo pipefail
-          # Node 22.20.0's bundled corepack maps pnpm >= 6 to ./bin/pnpm.cjs,
-          # which pnpm 12 no longer ships (it uses ./bin/pnpm.mjs). Pin corepack
-          # explicitly instead of installing the floating `corepack@latest`.
-          npm install -g corepack@0.36.0
-          corepack enable
-          corepack prepare pnpm@12.2.1 --activate
-
-      - name: Install dependencies
-        shell: bash
-        run: |
-          set -euo pipefail
-          corepack pnpm install --frozen-lockfile
-
-      - name: Test
-        shell: bash
-        run: corepack pnpm test
-
-      - name: Lint
-        shell: bash
-        run: corepack pnpm lint
-
-      - name: Build
-        shell: bash
-        run: corepack pnpm build
-
-      - name: Upload shared frontend build
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: starter-page-dist
-          path: dist
-          if-no-files-found: error
-          retention-days: 1
-
-      # Canonical addon packaging + validation (scripts/build.mjs): manifest v3,
-      # New Tab override, storage permission, version sync with package.json,
-      # required runtime files, and no web-only runtime config. Reuses the shared
-      # dist/ build instead of duplicating validation in bash.
-      - name: Package and validate addon
-        shell: bash
-        run: corepack pnpm build:addon
+    uses: CaffeinatedPinguin/templates/.github/workflows/node-ci.yml@7ffc7a24b61dc4e9ad79f23b12811790a9b73022
+    with:
+      # A manual run can verify an untrusted PR head without a pull_request trigger.
+      ref: ${{ github.event.inputs.pr && format('refs/pull/{0}/head', github.event.inputs.pr) || '' }}
+      scripts: test lint build build:addon
+      node-version-file: .nvmrc
+      artifact-name: dist
+      artifact-path: dist
+      # Addon zip is a separate artifact for the release, so the dist layout
+      # used by the Docker build is untouched.
+      assets-name: addon
+      assets-path: build/starter-page-addon.zip
+      check-release-tag: true
 
   docker:
-    name: starter-page / docker build
-    needs: [guard, starter-page]
-    if: needs.guard.outputs.is_release != 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    name: docker
+    needs: verify
     permissions:
       contents: read
+      packages: write
+    uses: CaffeinatedPinguin/templates/.github/workflows/docker.yml@7ffc7a24b61dc4e9ad79f23b12811790a9b73022
+    with:
+      image-name: starter-page
+      # Build the Dockerfile and dist from the same commit as verify.
+      ref: ${{ github.event.inputs.pr && format('refs/pull/{0}/head', github.event.inputs.pr) || '' }}
+      context: .
+      dockerfile: Dockerfile
+      target: runtime-prebuild
+      artifact-name: dist
+      artifact-path: dist
+      smoke-paths: / /config.json
+      push: ${{ startsWith(github.ref, 'refs/tags/') }}
+
+  release:
+    name: release
+    needs: docker
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    uses: CaffeinatedPinguin/templates/.github/workflows/release.yml@7ffc7a24b61dc4e9ad79f23b12811790a9b73022
+    with:
+      image-name: starter-page
+      # The addon artifact uploaded by node-ci.yml lands in the workspace root.
+      assets-artifact: addon
+      assets-glob: starter-page-addon.zip
+
+  conventions:
+    name: conventions
+    if: github.event_name == 'pull_request'
+    permissions: {}
+    uses: CaffeinatedPinguin/templates/.github/workflows/conventions.yml@7ffc7a24b61dc4e9ad79f23b12811790a9b73022
+
+  dependency-review:
+    name: dependency-review
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    uses: CaffeinatedPinguin/templates/.github/workflows/dependency-review.yml@7ffc7a24b61dc4e9ad79f23b12811790a9b73022
+    with:
+      fail-on-severity: high
+
+  # The baseline required check. It never fails the run itself for a skipped
+  # job, but fails when any needed job failed or was cancelled.
+  ci-required:
+    name: ci-required
+    if: always()
+    needs: [conventions, dependency-review, verify, docker, release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    permissions: {}
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 1
-
-      - name: Download shared frontend build
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: starter-page-dist
-          path: dist
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
-
-      - name: Build image without publishing (reuses the shared build)
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
-        with:
-          context: .
-          file: Dockerfile
-          target: runtime-prebuild
-          pull: true
-          push: false
-          load: true
-          tags: local/starter-page:ci
-          cache-from: type=gha,scope=docker-${{ github.repository }}-starter-page
-          cache-to: type=gha,scope=docker-${{ github.repository }}-starter-page,mode=max
-          provenance: false
-          sbom: false
-
-      - name: Smoke test served image
-        shell: bash
+      - name: All jobs green
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          set -euo pipefail
-          docker run --rm -d -p 18080:8080 --name starter-page-smoke local/starter-page:ci
-          trap 'docker rm -f starter-page-smoke >/dev/null 2>&1 || true' EXIT
-
-          for attempt in $(seq 1 30); do
-            if docker exec starter-page-smoke wget -qO- http://127.0.0.1:8080/healthz >/dev/null 2>&1; then
-              break
-            fi
-            sleep 1
+          for r in $RESULTS; do
+            [[ "$r" == success || "$r" == skipped ]] || { echo "::error::job result: $r"; exit 1; }
           done
-
-          root="$(docker exec starter-page-smoke wget -qO- http://127.0.0.1:8080/)"
-          grep -q '<div id="root">' <<<"$root"
-
-          config="$(docker exec starter-page-smoke wget -qO- http://127.0.0.1:8080/config.json)"
-          grep -q '"defaultPage"' <<<"$config"
-          grep -q '"links"' <<<"$config"

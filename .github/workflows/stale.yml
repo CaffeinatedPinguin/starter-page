@@ -1,0 +1,29 @@
+# Closes issues labeled needs-info after 7 days of silence + 7 days of warning.
+# It touches nothing else. It runs on a schedule in the GitHub cloud
+# (not on your computer) and never executes issue content.
+name: stale
+
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+        with:
+          only-labels: needs-info
+          days-before-issue-stale: 7
+          days-before-issue-close: 7
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          stale-issue-message: "No response for 7 days. This will be closed in 7 days unless the requested information is added."
+          close-issue-message: "Closed due to missing information. Feel free to reopen with the details."
+          close-issue-reason: not_planned

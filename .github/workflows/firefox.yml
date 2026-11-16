@@ -2,7 +2,7 @@ name: firefox
 
 # Manual, self-distributed (UNLISTED) Firefox submission.
 #
-# This workflow is intentionally manual and isolated from ci.yml/release.yml:
+# This workflow is intentionally manual and isolated from the main ci pipeline:
 # it resolves the NEWEST stable vX.Y.Z tag itself, builds from exactly that tag
 # and submits addon + source to Mozilla AMO. It never creates a GitHub Release,
 # never attaches an XPI and never publishes a Docker image. The signed XPI is
@@ -67,41 +67,30 @@ jobs:
           echo "Version check passed: ${TAG} == v${version}"
 
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
+          # This workflow builds an older release tag that does not contain the
+          # Node version file, so the version is pinned explicitly on purpose.
           node-version: 22.20.0
 
-      - name: Cache pnpm store
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - name: Set up pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
-          path: ~/.local/share/pnpm/store
-          key: pnpm-starter-page-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: pnpm-starter-page-${{ runner.os }}-
-
-      - name: Enable corepack
-        shell: bash
-        run: |
-          set -euo pipefail
-          # Node 22.20.0's bundled corepack maps pnpm >= 6 to ./bin/pnpm.cjs,
-          # which pnpm 12 no longer ships (it uses ./bin/pnpm.mjs). Pin corepack
-          # explicitly instead of installing the floating `corepack@latest`.
-          npm install -g corepack@0.36.0
-          corepack enable
-          corepack prepare pnpm@12.2.1 --activate
+          cache: true
 
       - name: Install dependencies
         shell: bash
         run: |
           set -euo pipefail
-          corepack pnpm install --frozen-lockfile
+          pnpm install --frozen-lockfile
 
       - name: Test
         shell: bash
-        run: corepack pnpm test
+        run: pnpm test
 
       - name: Lint
         shell: bash
-        run: corepack pnpm lint
+        run: pnpm lint
 
       # Canonical Node AMO tooling. amo:build performs the production build and
       # emits versioned addon/source ZIPs; amo:check validates that exact addon —
@@ -111,8 +100,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          corepack pnpm amo:build
-          corepack pnpm amo:check
+          pnpm amo:build
+          pnpm amo:check
 
       # Submit exactly the validated addon: extract it flat so web-ext sees the
       # same bytes as the package amo:check accepted (manifest.json at root).
@@ -151,7 +140,7 @@ jobs:
           secret="$(printf '%s' "$AMO_JWT_SECRET" | tr -d '[:space:]')"
           version="${TAG#v}"
           mkdir -p "$RUNNER_TEMP/web-ext-artifacts"
-          corepack pnpm exec web-ext sign \
+          pnpm exec web-ext sign \
             --source-dir "$RUNNER_TEMP/firefox-addon" \
             --channel=unlisted \
             --upload-source-code="build/starter-page-v${version}-source.zip" \
