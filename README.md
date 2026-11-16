@@ -164,22 +164,24 @@ src/
 
 ## Pipelines
 
-Workflows live in `.github/workflows/` and all third-party actions are pinned to
-full commit SHAs:
+Workflows live in `.github/workflows/` and every third-party action is pinned to
+a full commit SHA, so a moved tag cannot swap the code under you.
 
-- **`ci.yml`** — on every push to `main` (and manual dispatch): test, lint,
-  build, canonical add-on packaging/validation, Docker build and a container
-  smoke test. Nothing is published.
-- **`release.yml`** — on `v*.*.*` tags: validates the tag against
-  `package.json`, publishes `ghcr.io/<owner>/starter-page:<version>`, builds the
-  Chromium add-on ZIP and creates the GitHub release.
-- **`firefox.yml`** — manual dispatch only: resolves the newest stable `vX.Y.Z`
-  tag, builds and validates the AMO packages, and submits the add-on and source
-  to Mozilla as **unlisted / self-distributed**. The signed XPI is downloaded
-  and attached to the matching release by hand.
+- **`ci.yml`** — the main pipeline. It runs on pull requests, on every push to
+  `main`, on `vX.Y.Z` tags and by hand. Its jobs call the shared workflows from
+  the `templates` repository: tests and build, the Docker image, the release
+  (tags only), the pull request title check and the dependency review. A final
+  `ci-required` job is the only required check; it passes when the other jobs
+  pass or are skipped.
+- **`firefox.yml`** — manual only, as before: it builds and submits the add-on
+  and its source to Mozilla AMO as an unlisted, self-distributed package.
+- **`stale.yml`** — closes issues that carry the `needs-info` label and stay
+  without a reply.
+- **`dependabot-auto-merge.yml`** — turns on auto-merge for Dependabot pull
+  requests, except for major updates.
 
-`ci.yml` and `release.yml` share a SHA-based concurrency group so a release tag
-supersedes CI for the same commit. Firefox submissions are fully isolated.
+Dependabot keeps GitHub Actions, the npm/pnpm dependencies and the Docker image
+up to date.
 
 ## Releases
 

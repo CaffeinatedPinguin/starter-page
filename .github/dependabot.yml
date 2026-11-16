@@ -1,0 +1,53 @@
+# Low noise: once a month, minor+patch in one grouped PR per ecosystem,
+# each major separately (you read the changelog). Cooldown 7 days, 14 for majors
+# (new versions "sit" for a while - protection against freshly hijacked packages).
+# Security updates arrive immediately, regardless of schedule and groups.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7   # semver-*-days is not supported by every ecosystem - here only default
+    groups:
+      actions:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+    labels: [dependencies]
+    commit-message:
+      prefix: chore
+      include: scope
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    groups:
+      minor-patch:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+    labels: [dependencies]
+    commit-message:
+      prefix: chore
+      include: scope
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    labels: [dependencies]
+    commit-message:
+      prefix: chore
+      include: scope
+    open-pull-requests-limit: 3

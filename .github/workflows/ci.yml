@@ -31,7 +31,7 @@ jobs:
     name: verify
     permissions:
       contents: read
-    uses: CaffeinatedPinguin/templates/.github/workflows/node-ci.yml@7ffc7a24b61dc4e9ad79f23b12811790a9b73022
+    uses: CaffeinatedPinguin/templates/.github/workflows/node-ci.yml@db5c77c61e93c9d0be22216687b82f4bdac3d21d
     with:
       # A manual run can verify an untrusted PR head without a pull_request trigger.
       ref: ${{ github.event.inputs.pr && format('refs/pull/{0}/head', github.event.inputs.pr) || '' }}
@@ -51,7 +51,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: CaffeinatedPinguin/templates/.github/workflows/docker.yml@7ffc7a24b61dc4e9ad79f23b12811790a9b73022
+    uses: CaffeinatedPinguin/templates/.github/workflows/docker.yml@db5c77c61e93c9d0be22216687b82f4bdac3d21d
     with:
       image-name: starter-page
       # Build the Dockerfile and dist from the same commit as verify.
@@ -70,7 +70,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
-    uses: CaffeinatedPinguin/templates/.github/workflows/release.yml@7ffc7a24b61dc4e9ad79f23b12811790a9b73022
+    uses: CaffeinatedPinguin/templates/.github/workflows/release.yml@db5c77c61e93c9d0be22216687b82f4bdac3d21d
     with:
       image-name: starter-page
       # The addon artifact uploaded by node-ci.yml lands in the workspace root.
@@ -81,14 +81,14 @@ jobs:
     name: conventions
     if: github.event_name == 'pull_request'
     permissions: {}
-    uses: CaffeinatedPinguin/templates/.github/workflows/conventions.yml@7ffc7a24b61dc4e9ad79f23b12811790a9b73022
+    uses: CaffeinatedPinguin/templates/.github/workflows/conventions.yml@db5c77c61e93c9d0be22216687b82f4bdac3d21d
 
   dependency-review:
     name: dependency-review
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
-    uses: CaffeinatedPinguin/templates/.github/workflows/dependency-review.yml@7ffc7a24b61dc4e9ad79f23b12811790a9b73022
+    uses: CaffeinatedPinguin/templates/.github/workflows/dependency-review.yml@db5c77c61e93c9d0be22216687b82f4bdac3d21d
     with:
       fail-on-severity: high
 

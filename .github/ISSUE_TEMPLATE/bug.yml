@@ -1,0 +1,53 @@
+name: Bug report
+description: Something is broken and you can reproduce it.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Security issue? Do not file it here.** Use the repository's *Security → Report a vulnerability* button.
+        Please search existing issues first. Reports missing the required details are labeled `needs-info`
+        and closed automatically after 14 days without a reply.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: v1.4.2 or abc1234
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: OS, runtime version, install method
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Minimal, numbered steps. Reports that cannot be reproduced will be closed.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Remove secrets and personal data before pasting.
+      render: shell
