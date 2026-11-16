@@ -1,0 +1,26 @@
+name: Feature request
+description: A problem you have that the project could solve.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what stops you? Describe the problem, not the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case
+      description: A concrete example from your work.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution (optional)
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered (optional)
