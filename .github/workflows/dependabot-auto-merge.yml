@@ -1,0 +1,30 @@
+# Enables auto-merge for Dependabot PRs (security updates and grouped minor/patch).
+# GitHub merges them only after a green "ci-required" (tests + dependency review).
+# Major updates remain a manual decision.
+# Security: no checkout, it never runs code from the PR; it runs only for PRs
+# created by dependabot[bot] (other PRs can only be created by collaborators).
+name: dependabot-auto-merge
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  auto-merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+
+      - name: Enable auto-merge (not for major updates)
+        if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --squash "$PR_URL"

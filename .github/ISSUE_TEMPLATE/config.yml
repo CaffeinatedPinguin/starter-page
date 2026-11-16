@@ -1,0 +1,3 @@
+blank_issues_enabled: false
+# Blank issues are disabled: every report must use a form (bug / feature).
+# The "Task" form is meant for the maintainer but is technically visible to everyone.
