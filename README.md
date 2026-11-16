@@ -40,7 +40,7 @@ differs. See [Deployment](#deployment) for details.
 
 ## Quick start
 
-Requires **Node ≥ 22.20.0** and **pnpm** (provided through Corepack):
+Requires **Node ≥ 22.22.2** and **pnpm** (provided through Corepack):
 
 ```bash
 corepack enable

@@ -31,7 +31,7 @@ brakuje wyłącznie rzeczy submissionowych (source archive + build instructions,
 1. **Source code + BUILD.md** — **twardy wymóg, nie „nice to have”**: Vite
    generuje/bundluje/minifikuje kod, a Mozilla musi móc odtworzyć identyczny artefakt
    (Add-on Policies §3.1). Lockfile (`pnpm-lock.yaml`) już jest. Instrukcje muszą zawierać:
-   - OS/arch oraz wersję Node (wymóg projektu: `>=22.20.0`),
+   - OS/arch oraz wersję Node (wymóg projektu: `>=22.22.2`),
    - sposób użycia pnpm przez corepack (`corepack prepare pnpm@12.2.1 --activate`),
    - dokładne komendy:
      ```
