@@ -4,8 +4,8 @@ name: ci
 # package), Docker image build with a smoke test, and the tag-driven release.
 # Tag runs share the SHA-based group with branch runs: a release tag cancels the
 # CI run for the same commit, while CI never cancels an in-progress release.
-# Pull requests are "Collaborators only"; PR runs never receive secrets and every
-# job keeps read-only permissions.
+# Pull requests are "Collaborators only"; PR runs never receive secrets, and the
+# registry push and release jobs only run for tags.
 on:
   push:
     branches: [main]
