@@ -1,6 +1,7 @@
 # starter-page architecture
 
-This file owns the runtime model and the module boundaries of starter-page. The repository root is the application: one package manifest, one frontend build, and no nested apps or monorepo.
+starter-page is a single app in the repository root: one package manifest, one frontend build, no
+nested apps or monorepo. This file describes the runtime model and the module boundaries.
 
 ## Runtime model
 

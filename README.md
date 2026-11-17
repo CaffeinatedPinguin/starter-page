@@ -1,46 +1,48 @@
 # starter-page
 
-**A configurable start page for your homelab — one React + Vite + TypeScript app, one build, shipped both as a Docker/nginx web page and as a Manifest V3 browser add-on that replaces the New Tab.**
+A configurable, offline start page for a homelab. One React + Vite + TypeScript app, built once and
+shipped as a Docker/nginx web page and as a Manifest V3 add-on that replaces the New Tab.
 
-[![ci](https://github.com/CaffeinatedPinguin/starter-page/actions/workflows/ci.yml/badge.svg)](https://github.com/CaffeinatedPinguin/starter-page/actions/workflows/ci.yml)
-[![release](https://github.com/CaffeinatedPinguin/starter-page/actions/workflows/release.yml/badge.svg)](https://github.com/CaffeinatedPinguin/starter-page/actions/workflows/release.yml)
-[![license](https://img.shields.io/github/license/CaffeinatedPinguin/starter-page)](https://github.com/CaffeinatedPinguin/starter-page/blob/main/LICENSE)
+[![CI workflow status](https://github.com/CaffeinatedPinguin/starter-page/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/CaffeinatedPinguin/starter-page/actions/workflows/ci.yml)
+[![Latest version](https://img.shields.io/github/v/release/CaffeinatedPinguin/starter-page?label=version&sort=semver)](https://github.com/CaffeinatedPinguin/starter-page/releases/latest)
+[![License](https://img.shields.io/github/license/CaffeinatedPinguin/starter-page)](LICENSE)
+
+**Status:** active, maintained by one person on a best-effort basis. Issues are welcome; outside
+pull requests are not accepted. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Overview
 
-`starter-page` renders a configurable, offline, searchable list of links. It is
-built once (`pnpm build` → `dist/`) and deployed in two independent forms from
-that same build:
+`starter-page` renders a configurable, offline, searchable list of links. It is built once
+(`pnpm build` -> `dist/`) and deployed in two forms from that build:
 
 | Form | Runtime | Configuration |
-| --- | --- | --- |
-| **Web** | Docker + nginx over HTTP/HTTPS | `/config.json`, a runtime asset served by nginx |
-| **Browser add-on** | Manifest V3 (Chrome, Brave, Firefox) | `browser.storage.local`, imported from `options.html` |
+|---|---|---|
+| Web | Docker + nginx over HTTP/HTTPS | `/config.json`, a runtime asset served by nginx |
+| Browser add-on | Manifest V3 (Chrome, Brave, Firefox) | `browser.storage.local`, imported from `options.html` |
 
-The compiled frontend is identical for both; only the runtime data source
-differs. See [Deployment](#deployment) for details.
+The compiled frontend is identical for both. Only the runtime data source differs. See
+[Deployment](#deployment).
 
 ## Features
 
-- **Single build, two targets** — no duplicated frontend; web and add-on share
-  one `dist/`.
-- **Independent Starter Pages** — each page is its own feature root with its own
-  layout, selected in memory (no router). Only `categorized` ships today.
-- **Local search** — highlights matching rows without filtering; case- and
-  diacritic-insensitive, with no fuzzy-search dependency.
-- **Runtime config, no rebuild** — the web app reads `/config.json` from nginx,
-  so operators can replace or shadow-mount it without rebuilding the image.
-- **Self-contained & offline** — icons are generated at build time
-  (`@iconify/unplugin`, `allowAPI: false`) and fonts are bundled; no CDN, no
-  runtime fetch.
-- **Semantic links** — real `<a href>` elements; middle click, Ctrl/Cmd click
-  and the browser context menu keep their native behavior.
-- **No collection** — the add-on requests only the `storage` permission, makes
-  no network requests and runs search entirely in memory.
+- **One build, two targets.** The web page and the add-on share one `dist/`; no frontend is
+  duplicated.
+- **Independent Starter Pages.** Each page has its own layout and is loaded in memory, without a
+  router. `categorized` is the only page today.
+- **Local search.** Matching rows are highlighted, not filtered. Search ignores case and diacritics
+  and needs no fuzzy-search dependency.
+- **Runtime config.** The web app reads `/config.json` from nginx, so you can replace or
+  shadow-mount it without rebuilding the image.
+- **Self-contained.** Icons are generated at build time and fonts are bundled. There is no CDN and
+  no runtime fetch.
+- **Semantic links.** Real `<a href>` elements keep middle click, Ctrl/Cmd click and the browser
+  context menu working.
+- **No collection.** The add-on asks for the `storage` permission only, makes no network requests
+  and keeps search in memory.
 
 ## Quick start
 
-Requires **Node ≥ 22.22.2** and **pnpm** (provided through Corepack):
+Requires Node 22.22.2 or newer and pnpm through Corepack:
 
 ```bash
 corepack enable
@@ -49,8 +51,7 @@ pnpm install
 pnpm dev
 ```
 
-`pnpm dev` starts Vite in web mode and reads `config.json` from the repository
-root.
+`pnpm dev` starts Vite in web mode and reads `config.json` from the repository root.
 
 ## Deployment
 
@@ -62,20 +63,19 @@ docker build -t starter-page .
 docker run --rm -p 8080:8080 starter-page
 ```
 
-`/config.json` is served with `Cache-Control: no-store` and can be replaced or
-shadow-mounted after the image is built — changing it needs only a page reload,
-not a rebuild.
+`/config.json` is served with `Cache-Control: no-store`. You can replace or shadow-mount it after
+the image is built; a page reload picks it up.
 
 ### Browser add-on
 
 ```bash
-pnpm build:addon   # -> build/addon/ (unpacked) + build/starter-page-addon.zip
+pnpm build:all   # -> build/web + build/addon + build/starter-page-addon.zip
 ```
 
 Load `build/addon/` as an unpacked extension, or install the released
-`starter-page-v<version>-chromium.zip`. The add-on stores its configuration in
-`browser.storage.local`; import a `config.json` from the options page
-(`options.html`) and the same schema as the web app is accepted.
+`starter-page-v<version>-chromium.zip`. The add-on stores configuration in `browser.storage.local`;
+import a `config.json` from the options page (`options.html`). It accepts the same schema as the web
+app.
 
 ## Configuration
 
@@ -96,44 +96,40 @@ Load `build/addon/` as an unpacked extension, or install the released
 }
 ```
 
-- `title` — document title.
-- `heading`, `subtitle` — passed to the selected page.
-- `defaultPage` — page id used when no local preference exists (currently
-  `categorized`).
-- `categories` — optional per-category `icon` and `color`.
-- `links[]` — shared link data every page renders (`LinkEntry`): a stable unique
-  `id`, `name`, `url` (absolute `http(s)` or app-relative `/path`), and optional
-  `icon`, `description`, `category`, `order`.
+- `title`: document title.
+- `heading`, `subtitle`: passed to the selected page.
+- `defaultPage`: page id used when no local preference exists (`categorized` today).
+- `categories`: optional per-category `icon` and `color`.
+- `links[]`: shared link data (`LinkEntry`) with a stable unique `id`, `name`, `url` (absolute
+  `http(s)` or app-relative `/path`), and optional `icon`, `description`, `category`, `order`.
 
-A link is declared once and rendered by any page — never duplicated because
-pages display it differently. User preferences (`entryPage`) are kept strictly
-apart from application data: `localStorage` on the web, extension storage in the
-add-on, and never part of `config.json`. `config.json` in the repository root is
-a complete example.
+A link is declared once and rendered by any page. User preferences (`entryPage`) are separate from
+application data: `localStorage` on the web, extension storage in the add-on, never in `config.json`.
+The `config.json` in the repository root is a complete example.
 
 ## Commands
 
 | Command | Description |
-| --- | --- |
-| `pnpm dev` | Vite dev server (web mode, `/config.json`). |
-| `pnpm build` | Production build: `vite build` + `tsc -b --noEmit` → `dist/`. |
-| `pnpm build:all` | One Vite build → `build/web` + `build/addon` (+ add-on zip). |
+|---|---|
+| `pnpm dev` | Vite dev server in web mode. |
+| `pnpm build` | Production build: `vite build` + `tsc -b --noEmit` -> `dist/`. |
+| `pnpm build:all` | One Vite build -> `build/web` + `build/addon` (+ add-on zip). |
 | `pnpm build:web` | Web output from an existing `dist/` (`--no-build`). |
 | `pnpm build:addon` | Validated add-on output + zip from an existing `dist/`. |
 | `pnpm preview` | Preview the production build. |
-| `pnpm test` | Vitest (run once). |
+| `pnpm test` | Vitest, once. |
 | `pnpm test:watch` | Vitest in watch mode. |
 | `pnpm lint` | ESLint. |
 | `pnpm typecheck` | `tsc -b --noEmit`. |
-| `pnpm version:patch` | Bump the version in `package.json` + `manifest.json` (`:minor` / `:major` too). |
+| `pnpm version:patch` | Bump `package.json` + `manifest.json` (`:minor` / `:major` too). |
 | `pnpm amo:build` | Versioned AMO artifacts: `build/starter-page-v<version>-{addon,source}.zip`. |
 | `pnpm amo:check` | AMO readiness validation of the built add-on (also runs `web-ext lint`). |
 
 ## Architecture
 
-The initial page is resolved during bootstrap — detect runtime → load data and
-preferences → pick the page (`entryPage` → `defaultPage` → safe fallback) →
-`import()` only that page. Vite emits one chunk per Starter Page.
+The initial page is resolved during bootstrap: detect the runtime, load data and preferences, pick
+the page (`entryPage` -> `defaultPage` -> safe fallback), then `import()` only that page. Vite emits
+one chunk per Starter Page.
 
 <details>
 <summary>Source layout</summary>
@@ -164,38 +160,43 @@ src/
 
 ## Pipelines
 
-Workflows live in `.github/workflows/` and every third-party action is pinned to
-a full commit SHA, so a moved tag cannot swap the code under you.
+Workflows live in `.github/workflows/`. Every third-party action is pinned to a full commit SHA, so
+a moved tag cannot swap the code under you.
 
-- **`ci.yml`** — the main pipeline. It runs on pull requests, on every push to
-  `main`, on `vX.Y.Z` tags and by hand. Its jobs call the shared workflows from
-  the `templates` repository: tests and build, the Docker image, the release
-  (tags only), the pull request title check and the dependency review. A final
-  `ci-required` job is the only required check; it passes when the other jobs
-  pass or are skipped.
-- **`firefox.yml`** — manual only, as before: it builds and submits the add-on
-  and its source to Mozilla AMO as an unlisted, self-distributed package.
-- **`stale.yml`** — closes issues that carry the `needs-info` label and stay
-  without a reply.
-- **`dependabot-auto-merge.yml`** — turns on auto-merge for Dependabot pull
-  requests, except for major updates.
+- **`ci.yml`**: runs on pull requests, pushes to `main`, `vX.Y.Z` tags and manual dispatch. It calls
+  the shared `templates` workflows for tests and build, the Docker image, the release (tags only),
+  the PR title check and the dependency review. `ci-required` is the only required check; it passes
+  when the other jobs pass or are skipped.
+- **`firefox.yml`**: manual only. It builds the add-on and its source and submits them to Mozilla
+  AMO as an unlisted, self-distributed package.
+- **`stale.yml`**: closes issues with the `needs-info` label that get no reply.
+- **`dependabot-auto-merge.yml`**: enables auto-merge for Dependabot pull requests, except major
+  updates.
 
-Dependabot keeps GitHub Actions, the npm/pnpm dependencies and the Docker image
-up to date.
+Dependabot keeps GitHub Actions, the npm/pnpm dependencies and the Docker image up to date.
+
+## Documentation
+
+Start at [docs/index.md](docs/index.md) for the runtime model, the module boundaries and the AMO
+submission guide.
 
 ## Releases
 
-Tagged releases are published on GitHub — see
-<https://github.com/CaffeinatedPinguin/starter-page/releases>:
+Tagged releases are published on the [GitHub releases page](https://github.com/CaffeinatedPinguin/starter-page/releases):
 
-- **Chromium add-on** — `starter-page-v<version>-chromium.zip`.
-- **Container image** — `ghcr.io/caffeinatedpinguin/starter-page:<version>`.
+- Chromium add-on: `starter-page-v<version>-chromium.zip`.
+- Container image: `ghcr.io/caffeinatedpinguin/starter-page:<version>`.
 
-Firefox (AMO) builds are submitted manually as unlisted/self-distributed; the
-signed XPI is attached to the matching release after Mozilla approval. See
-`docs/firefox-amo-submission.md` for the submission checklist and the required
+Firefox (AMO) builds are submitted manually as unlisted/self-distributed. The signed XPI is attached
+to the matching release after Mozilla approval. See
+[docs/firefox-amo-submission.md](docs/firefox-amo-submission.md) for the checklist and the
 `AMO_JWT_ISSUER` / `AMO_JWT_SECRET` repository secrets.
+
+## Security
+
+Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Do not open a public
+issue for a security problem.
 
 ## License
 
-Apache-2.0 — see [LICENSE](LICENSE).
+Apache-2.0. See [LICENSE](LICENSE).

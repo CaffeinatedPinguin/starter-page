@@ -1,101 +1,94 @@
-# Firefox (AMO) — instrukcja przed wysłaniem
+# Firefox (AMO): przygotowanie do wysłania
 
-Audyt zgodności dodatku `starter-page` (Firefox, Manifest V3) na potrzeby publikacji na
-addons.mozilla.org. Źródła prawdy: **Firefox Add-on Policies** i **Firefox Add-on
-Distribution Agreement** (Extension Workshop).
+Ten dokument opisuje przygotowanie dodatku `starter-page` (Firefox, Manifest V3) do publikacji na
+addons.mozilla.org. Podstawa: Firefox Add-on Policies i Firefox Add-on Distribution Agreement.
 
 ## Status
 
-**READY AFTER MINOR CHANGES / bardzo blisko READY** — kodowo jest czysto; do wysyłki
-brakuje wyłącznie rzeczy submissionowych (source archive + build instructions, deklaracja
-`data_collection_permissions`, listing i support contact).
+Kod jest gotowy. Przed wysłaniem zostają sprawy submissionowe: archiwum źródeł z `BUILD.md`,
+deklaracja `data_collection_permissions`, listing i support contact.
 
-## Co jest zgodne (PASS)
+## Co już jest zgodne
 
-- **Self-contained / brak remote code**: MV3, brak `host_permissions`, JS/CSS/ikony
-  lokalne; Iconify generowany build-time (`mode:'svg'`, `allowAPI:false`); fonty
-  `@fontsource`; brak `eval`, CDN, XHR/WebSocket/beacon.
-- **New Tab lokalny**: `chrome_url_overrides.newtab = "index.html"`; brak redirectu /
-  iframe; addon czyta z `browser.storage.local`; build wyklucza `config.json`/`config/`.
-- **Uprawnienia minimalne**: tylko `storage` (brak `tabs`, `webRequest`, `scripting`,
-  `cookies`, `history`, `<all_urls>`).
-- **Zero zbierania/transmisji danych**: wyszukiwanie lokalne, w pamięci; query nigdy nie
-  jest wysyłane ani zapisywane; brak analityki/telemetrii.
-- **Private browsing**: brak `incognito` (default), nic z sesji prywatnych nie jest
-  zapisywane — zgodne z §6.3 Additional Privacy Protocols.
-- **Nie łamie „sole purpose promoting outside website”** (§2 Content): to lokalna strona
-  startowa + lokalny search; linki otwierają się dopiero po kliknięciu użytkownika.
+- **Brak remote code.** MV3, bez `host_permissions`; JS, CSS i ikony są lokalne. Iconify działa
+  build-time (`mode: 'svg'`, `allowAPI: false`), fonty pochodzą z `@fontsource`. Brak `eval`, CDN,
+  XHR, WebSocket i beacon.
+- **Lokalny New Tab.** `chrome_url_overrides.newtab` wskazuje `index.html`. Brak redirectu i iframe.
+  Dodatek czyta `browser.storage.local`, a build wyklucza `config.json` i `config/`.
+- **Minimalne uprawnienia.** Tylko `storage`; brak `tabs`, `webRequest`, `scripting`, `cookies`,
+  `history` i `<all_urls>`.
+- **Brak zbierania danych.** Search działa lokalnie i w pamięci; query nie jest wysyłane ani
+  zapisywane. Nie ma analityki ani telemetrii.
+- **Private browsing.** Brak `incognito` (domyślne), nic z sesji prywatnych nie jest zapisywane.
+  Zgodne z §6.3 Additional Privacy Protocols.
+- **Sole purpose.** To lokalna strona startowa z lokalnym search. Linki otwierają się po kliknięciu
+  użytkownika, więc §2 Content nie jest łamany.
 
-## Wymagane przed wysłaniem (P0)
+## Co trzeba zrobić przed wysłaniem
 
-1. **Source code + BUILD.md** — **twardy wymóg, nie „nice to have”**: Vite
-   generuje/bundluje/minifikuje kod, a Mozilla musi móc odtworzyć identyczny artefakt
-   (Add-on Policies §3.1). Lockfile (`pnpm-lock.yaml`) już jest. Instrukcje muszą zawierać:
-   - OS/arch oraz wersję Node (wymóg projektu: `>=22.22.2`),
-   - sposób użycia pnpm przez corepack (`corepack prepare pnpm@12.2.1 --activate`),
-   - dokładne komendy:
-     ```
+1. **Archiwum źródeł i `BUILD.md`.** Vite bundluje i minifikuje kod, więc Mozilla musi móc odtworzyć
+   identyczny artefakt (Add-on Policies §3.1). `pnpm-lock.yaml` już jest. `BUILD.md` musi zawierać:
+   - system i architekturę oraz wersję Node (projekt wymaga `>=22.22.2`),
+   - sposób użycia pnpm przez Corepack (`corepack prepare pnpm@12.2.1 --activate`),
+   - komendy:
+     ```sh
      pnpm install --frozen-lockfile
      pnpm build
-     pnpm build:addon   # albo: node scripts/build.mjs addon --no-build
+     pnpm build:addon
      ```
-   - uwaga: domyślne środowisko review to Ubuntu 24.04 ARM64 + Node 24.14.0 + npm 11.9.0,
-     a my budujemy pnpm — trzeba to jasno zaznaczyć,
-   - lista bibliotek third-party + linki.
-2. **`browser_specific_settings.gecko.data_collection_permissions`** — **wymagane** dla
-   nowych submissionów do AMO od **3 listopada 2025**. Skoro nic nie zbieramy ani nie
-   transmitujemy, właściwa deklaracja to `{ "required": ["none"] }`. To wymóg dla nowych
-   zgłoszeń i **nie zależy** od `strict_min_version`. Ustawiamy `gecko.strict_min_version`
-  = `140.0` oraz `gecko_android.strict_min_version` = `142.0`, bo od tych wersji
-  `data_collection_permissions` jest wspierane (inaczej walidator AMO ostrzega).
-3. **Listing AMO** musi wprost mówić: podmienia New Tab, konfiguracja trzymana lokalnie,
-   linki otwierane po kliknięciu (§1 No Surprises).
-4. **Support contact** — wymagany przez umowę (§5(b)); obecnie brak w repozytorium.
+   - uwagę, że środowisko review AMO to Ubuntu 24.04 ARM64, Node 24.14.0 i npm 11.9.0, a projekt
+     buduje przez pnpm,
+   - listę bibliotek third-party z linkami.
 
-## Ryzyka (P1)
+2. **`browser_specific_settings.gecko.data_collection_permissions`.** Od 3 listopada 2025 jest
+   wymagane w nowych zgłoszeniach. Skoro nic nie zbieramy, ustaw `{ "required": ["none"] }`. Ustaw
+   też `gecko.strict_min_version = "140.0"` i `gecko_android.strict_min_version = "142.0"`, bo od
+   tych wersji pole jest wspierane.
 
-- **Loga brandów** (`logos` + `simple-icons`: Google, GitHub, Grafana, Proxmox, Twitch,
-  TrueNAS, …): pakiety są CC0/MIT (copyright OK), ale **CC0 nie daje praw do znaków
-  towarowych**. To ryzyko IP/trademark, a **nie automatyczny blocker**; bądź gotowy usunąć
-  logo na żądanie (umowa §5(c)).
-- **`browser_specific_settings.gecko.id = starter-page@caffeinatedpinguin`** — **jest już
-  technicznie poprawne**. Mozilla wymaga formatu „email-like” albo GUID, nie prawdziwej
-  domeny (regex dopuszcza taki identyfikator). Identyfikator oparty o własną domenę jest
-  ładniejszy semantycznie, ale niekonieczny.
-- **CI nie podpisuje addonu** (`release.yml`) — dla self-distributed wymagane
-  `web-ext sign` / API; opublikowany zip jest niepodpisany.
-- `manifest.json` i `package.json` są trzymane w tej samej wersji (podbijaj oba
-  przez `pnpm version:patch`). `release.yml` wymaga tagu `v<wersja>`, a przy
-  pakowaniu `scripts/build.mjs` weryfikuje zgodność i synchronizuje wersję
-  manifestu z `package.json`.
+3. **Listing AMO.** Napisz wprost, że dodatek podmienia New Tab, trzyma konfigurację lokalnie i
+   otwiera linki dopiero po kliknięciu (§1 No Surprises).
+
+4. **Support contact.** Wymagany przez umowę (§5(b)); obecnie brakuje go w repozytorium.
+
+## Ryzyka
+
+- **Logotypy firm** (`logos`, `simple-icons`: Google, GitHub, Grafana, Proxmox, Twitch, TrueNAS
+  itd.). Pakiety są CC0/MIT, ale CC0 nie daje praw do znaków towarowych. To ryzyko IP, nie
+  automatyczny blocker. Bądź gotowy usunąć logo na żądanie (umowa §5(c)).
+- **`gecko.id`.** `starter-page@caffeinatedpinguin` jest technicznie poprawne. Mozilla wymaga
+  formatu email-like albo GUID, nie prawdziwej domeny. Identyfikator na własnej domenie jest
+  czytelniejszy, ale nie jest konieczny.
+- **Podpisywanie.** `release.yml` nie podpisuje add-onu. Dla self-distributed potrzebne jest
+  `web-ext sign` / API; opublikowany ZIP jest niepodpisany.
+- **Wersje.** `manifest.json` i `package.json` muszą mieć tę samą wersję. Podbijaj oba przez
+  `pnpm version:patch`. `release.yml` wymaga tagu `v<wersja>`, a `scripts/build.mjs` sprawdza
+  zgodność i synchronizuje wersję manifestu z `package.json`.
 
 ## Koszty
 
-- Opłat nie znaleziono w oficjalnej dokumentacji („No fee found in reviewed official docs”).
-- Koszty pozafinansowe: czas review, source archive przy każdym release, wsparcie
-  użytkowników, utrzymanie zgodności, odpowiedzialność IP.
+- W oficjalnej dokumentacji nie ma opłat.
+- Poza pieniędzmi: czas review, source archive przy każdym release, wsparcie użytkowników,
+  utrzymanie zgodności i odpowiedzialność za IP.
 
-## Automatyzacja (JS w `scripts/`)
+## Automatyzacja
 
-Dwie komendy (skrypty Node, bez bash):
+Dwie komendy Node, bez bash:
 
-- `pnpm amo:build` — tworzy w `build/` (gitignored) **tylko dwa artefakty**:
-  - `starter-page-v<wersja>-addon.zip` → **wgrywasz do checkera Firefox/AMO**,
-  - `starter-page-v<wersja>-source.zip` → **załączasz jako source code** (źródła +
-    `pnpm-lock.yaml` + `BUILD.md` + `THIRD-PARTY.md` + `LISTING.md`).
-- `pnpm amo:check` — waliduje **dokładnie ten addon ZIP** (rozpakowany) + spójność
-  wersji/tagów. Raport idzie na stdout/stderr (bez pliku), exit 1 przy FAIL.
+- `pnpm amo:build` tworzy w `build/` (gitignored) dwa artefakty:
+  - `starter-page-v<wersja>-addon.zip` do checkera Firefox/AMO,
+  - `starter-page-v<wersja>-source.zip` jako source code (źródła, `pnpm-lock.yaml`, `BUILD.md`,
+    `THIRD-PARTY.md`, `LISTING.md`).
+- `pnpm amo:check` waliduje dokładnie ten add-on ZIP po rozpakowaniu i sprawdza spójność wersji i
+  tagów. Raport trafia na stdout/stderr, nic nie zapisuje na dysk. Exit 1 oznacza FAIL.
 
-Kolejność: najpierw `amo:build`, potem `amo:check`. `amo:check` nic nie zapisuje na
-dysk, więc nie brudzi gita.
+Kolejność: najpierw `amo:build`, potem `amo:check`.
 
-> AMO przyjmuje **dwa osobne pliki, w dwóch krokach**. Najpierw wybierasz tylko addon
-> (`build/starter-page-v<wersja>-addon.zip`, pole „Select file" — nazwa kończy się
-> `.zip`, co AMO akceptuje). Źródłowy `build/starter-page-v<wersja>-source.zip`
-> dokładasz **później** (pole „Source code" / Manage → Status & Versions), bo build
-> jest minifikowany. **Nie łączy się ich w jeden zip.**
+AMO przyjmuje dwa osobne pliki w dwóch krokach. Najpierw wybierasz add-on
+(`build/starter-page-v<wersja>-addon.zip`) w polu „Select file”. Źródłowy ZIP dokładasz później w
+polu „Source code” (Manage -> Status & Versions), bo build jest minifikowany. Nie łącz ich w jeden
+ZIP.
 
-Inputy (opcjonalne) w `amo-submission.config.json` (gitignored; wzór:
+Opcjonalne pola w `amo-submission.config.json` (gitignored; wzór:
 `amo-submission.config.example.json`):
 
 ```json
@@ -107,70 +100,59 @@ Inputy (opcjonalne) w `amo-submission.config.json` (gitignored; wzór:
 }
 ```
 
-Wypełnione pola trafiają do `BUILD.md` w zipie źródłowym i odhaczają pozycje w
-raporcie. Cel: po dodaniu `data_collection_permissions: ["none"]` i uzupełnieniu
-configu `amo:check` nie powinien mieć FAIL.
+Wypełnione pola trafiają do `BUILD.md` w ZIP-ie źródłowym i odhaczają pozycje w raporcie. Po dodaniu
+`data_collection_permissions` i uzupełnieniu configu `amo:check` nie powinien zwracać FAIL.
 
-## Ręczna wysyłka do AMO (GitHub Actions)
+## Ręczna wysyłka do AMO
 
-Workflow `.github/workflows/firefox.yml` uruchamiany jest **tylko ręcznie**
-(`workflow_dispatch`). Sam wybiera najnowszy stabilny tag `vX.Y.Z`, buduje z
-dokładnie tego tagu, waliduje (`amo:build`, `amo:check`, `web-ext lint`) i
-wysyła addon wraz ze źródłami do AMO jako **unlisted / self-distributed**. Nie
-publikuje XPI, nie tworzy GitHub Release i nie dołącza niczego do release.
-Podpisany XPI pobierasz później ręcznie z AMO i dołączasz go do istniejącego
-GitHub Release.
+Workflow `.github/workflows/firefox.yml` uruchamia się tylko ręcznie (`workflow_dispatch`). Wybiera
+najnowszy stabilny tag `vX.Y.Z`, buduje z tego tagu, waliduje (`amo:build`, `amo:check`,
+`web-ext lint`) i wysyła add-on wraz ze źródłami do AMO jako unlisted/self-distributed. Nie publikuje
+XPI, nie tworzy GitHub Release i nie dołącza niczego do release. Podpisany XPI pobierasz później
+ręcznie z AMO i dołączasz do istniejącego GitHub Release.
 
-Wymagane sekrety repozytorium GitHub Actions — skonfiguruj je **ręcznie** w
-Settings → Secrets and variables → Actions (workflow ich nie tworzy, nie
-wypisuje i nie umieszcza w artefaktach ani w source ZIP):
+Skonfiguruj ręcznie sekrety w Settings -> Secrets and variables -> Actions. Workflow ich nie tworzy,
+nie wypisuje i nie umieszcza w artefaktach ani w source ZIP.
 
-- `AMO_JWT_ISSUER` — klucz API (JWT issuer) z addons.mozilla.org,
-- `AMO_JWT_SECRET` — sekret API (JWT secret) z addons.mozilla.org.
+- `AMO_JWT_ISSUER` -> `web-ext --api-key`
+- `AMO_JWT_SECRET` -> `web-ext --api-secret`
 
-Mapowanie: `AMO_JWT_ISSUER` → `web-ext --api-key`, `AMO_JWT_SECRET` →
-`web-ext --api-secret`.
+## Checklist przed releasem
 
-## Checklist przed każdym release
+- [ ] wersja podbita przez `pnpm version:patch` (`package.json` + `manifest.json`); tag = `v<wersja>`
+- [ ] `manifest.json` poprawny (MV3, `gecko.id`, `strict_min_version`)
+- [ ] `data_collection_permissions.required = ["none"]`
+- [ ] tylko wymagane uprawnienia (`storage`; brak `host_permissions`)
+- [ ] `chrome_url_overrides.newtab` -> `index.html` (lokalny)
+- [ ] paczka add-onu bez `config.json` / `config/`
+- [ ] brak remote executable code
+- [ ] Iconify build-time (`mode: 'svg'`, `allowAPI: false`)
+- [ ] fonty lokalne
+- [ ] brak analityki i telemetrii
+- [ ] search lokalny (query nie jest zapisywane)
+- [ ] `pnpm build`, `pnpm test` i `pnpm lint` przechodzą
+- [ ] source archive i `BUILD.md` aktualne (system, Node, corepack/pnpm, komendy)
+- [ ] lista bibliotek third-party z linkami
+- [ ] ZIP bez zbędnych plików
+- [ ] logotypy sprawdzone pod kątem znaków towarowych
+- [ ] listing AMO zgodny z rzeczywistością
+- [ ] support contact gotowy
+- [ ] tag i artefakty CI
+- [ ] (self-distributed) podpisanie i mechanizm aktualizacji
 
-```
-[ ] wersja podbita przez `pnpm version:patch` (package.json + manifest.json); tag = v<wersja>
-[ ] manifest.json poprawny (MV3, gecko.id, strict_min_version)
-[ ] data_collection_permissions.required = ["none"]
-[ ] tylko wymagane uprawnienia (storage; brak host_permissions)
-[ ] chrome_url_overrides.newtab -> index.html (lokalny)
-[ ] paczka addonu bez config.json / config/
-[ ] brak remote executable code
-[ ] Iconify build-time (mode:'svg', allowAPI:false)
-[ ] fonty lokalne
-[ ] brak analityki/telemetrii
-[ ] search lokalny (query niepersystowane)
-[ ] pnpm build / test / lint przechodzą
-[ ] source archive + BUILD.md aktualne (OS, Node, corepack/pnpm, komendy)
-[ ] lista bibliotek third-party + linki
-[ ] ZIP bez zbędnych plików
-[ ] trademarki logotypów przejrzane
-[ ] listing AMO zgodny z rzeczywistością
-[ ] support contact gotowy
-[ ] tag + artefakty CI
-[ ] (self-distributed) podpisanie + mechanizm aktualizacji
-```
+## Źródła
 
-## Źródła (oficjalne)
-
-- Add-on Policies: https://extensionworkshop.com/documentation/publish/add-on-policies/
+- [Add-on Policies](https://extensionworkshop.com/documentation/publish/add-on-policies/)
   (§1 No Surprises, §2 Content, §3.1 Source, §4 Development, §6 Data, §6.3 Private)
-- Distribution Agreement: https://extensionworkshop.com/documentation/publish/firefox-add-on-distribution-agreement/
+- [Distribution Agreement](https://extensionworkshop.com/documentation/publish/firefox-add-on-distribution-agreement/)
   (§5, §6, §7, §9, §10)
-- Source code submission: https://extensionworkshop.com/documentation/publish/source-code-submission/
-- Data consent: https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent/
-- Signing/distribution: https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/
-- `incognito` (MDN): https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/incognito
+- [Source code submission](https://extensionworkshop.com/documentation/publish/source-code-submission/)
+- [Data consent](https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent/)
+- [Signing and distribution](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/)
+- [incognito (MDN)](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/incognito)
 
-## Odpowiedź końcowa
+## Podsumowanie
 
-**Czy wysłać dzisiejszy build na AMO? NIE** — przed submissionem trzeba dodać
-`data_collection_permissions: { "required": ["none"] }`, przygotować source archive +
-reproducible build instructions oraz podać support contact / listing metadata. `gecko.id`
-jest już technicznie poprawne. Kwestia brand logo to ryzyko IP/trademark, a nie
-automatyczny blocker.
+Kodowo dodatek jest gotowy. Przed wysłaniem dodaj `data_collection_permissions`, przygotuj source
+archive z `BUILD.md`, uzupełnij support contact i listing. `gecko.id` jest poprawne. Logotypy to
+ryzyko IP, nie automatyczny blocker.
