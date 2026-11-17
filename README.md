@@ -1,3 +1,5 @@
+<p align="center"><img src="public/logo/logo-purple.svg" width="96" alt="starter-page logo"></p>
+
 # starter-page
 
 A configurable, offline start page for a homelab. One React + Vite + TypeScript app, built once and
@@ -107,78 +109,10 @@ A link is declared once and rendered by any page. User preferences (`entryPage`)
 application data: `localStorage` on the web, extension storage in the add-on, never in `config.json`.
 The `config.json` in the repository root is a complete example.
 
-## Commands
-
-| Command | Description |
-|---|---|
-| `pnpm dev` | Vite dev server in web mode. |
-| `pnpm build` | Production build: `vite build` + `tsc -b --noEmit` -> `dist/`. |
-| `pnpm build:all` | One Vite build -> `build/web` + `build/addon` (+ add-on zip). |
-| `pnpm build:web` | Web output from an existing `dist/` (`--no-build`). |
-| `pnpm build:addon` | Validated add-on output + zip from an existing `dist/`. |
-| `pnpm preview` | Preview the production build. |
-| `pnpm test` | Vitest, once. |
-| `pnpm test:watch` | Vitest in watch mode. |
-| `pnpm lint` | ESLint. |
-| `pnpm typecheck` | `tsc -b --noEmit`. |
-| `pnpm version:patch` | Bump `package.json` + `manifest.json` (`:minor` / `:major` too). |
-| `pnpm amo:build` | Versioned AMO artifacts: `build/starter-page-v<version>-{addon,source}.zip`. |
-| `pnpm amo:check` | AMO readiness validation of the built add-on (also runs `web-ext lint`). |
-
-## Architecture
-
-The initial page is resolved during bootstrap: detect the runtime, load data and preferences, pick
-the page (`entryPage` -> `defaultPage` -> safe fallback), then `import()` only that page. Vite emits
-one chunk per Starter Page.
-
-<details>
-<summary>Source layout</summary>
-
-```text
-src/
-├── app/                  # bootstrap: detect runtime -> load data -> render ONE page
-│   ├── bootstrap.tsx     # entry point used by index.html (deps injectable)
-│   ├── autoStart.ts      # browser-only auto-start guard (skipped under test)
-│   ├── pageRegistry.ts   # page id -> dynamic import map (one chunk per page)
-│   └── pageTypes.ts
-├── config/
-│   ├── environment.ts    # protocol-based runtime detection (web vs addon)
-│   ├── configLoader.ts   # /config.json (web) vs extension storage (addon)
-│   ├── storageAdapters.ts# JsonStorage adapters (extension + localStorage)
-│   ├── storage.ts        # single runtime -> storage factory
-│   ├── staticConfig.ts   # common parser: parseConfig + parsePreferences
-│   └── storageKeys.ts
-├── features/             # independent Starter Pages (feature roots)
-│   ├── categorized/      # grouped, multi-column page (CategorizedPage)
-│   └── shared/           # shared link behavior + primitives used by every page
-├── models/               # common schema: StarterPageConfig, LinkEntry, preferences
-├── styles/               # tokens.css + app.css (start page) + options.css
-└── options/              # options page (thin composition; markup in options.html)
-```
-
-</details>
-
-## Pipelines
-
-Workflows live in `.github/workflows/`. Every third-party action is pinned to a full commit SHA, so
-a moved tag cannot swap the code under you.
-
-- **`ci.yml`**: runs on pull requests, pushes to `main`, `vX.Y.Z` tags and manual dispatch. It calls
-  the shared `templates` workflows for tests and build, the Docker image, the release (tags only),
-  the PR title check and the dependency review. `ci-required` is the only required check; it passes
-  when the other jobs pass or are skipped.
-- **`firefox.yml`**: manual only. It builds the add-on and its source and submits them to Mozilla
-  AMO as an unlisted, self-distributed package.
-- **`stale.yml`**: closes issues with the `needs-info` label that get no reply.
-- **`dependabot-auto-merge.yml`**: enables auto-merge for Dependabot pull requests, except major
-  updates.
-
-Dependabot keeps GitHub Actions, the npm/pnpm dependencies and the Docker image up to date.
-
 ## Documentation
 
 Start at [docs/index.md](docs/index.md) for the runtime model, the module boundaries and the AMO
-submission guide.
+submission guide. For contributor setup and commands, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Releases
 
