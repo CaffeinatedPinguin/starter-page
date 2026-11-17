@@ -1,3 +1,5 @@
+<p align="center"><img src="public/logo/logo-purple.svg" width="96" alt="starter-page logo"></p>
+
 # starter-page
 
 A configurable, offline start page for a homelab. One React + Vite + TypeScript app, built once and
