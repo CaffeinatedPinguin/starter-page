@@ -14,8 +14,8 @@ pull requests are not accepted. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Overview
 
-`starter-page` renders a configurable, offline, searchable list of links. It is built once
-(`pnpm build` -> `dist/`) and deployed in two forms from that build:
+`starter-page` renders a configurable, offline, searchable list of links. It is built once and
+deployed in two forms from that build:
 
 | Form | Runtime | Configuration |
 |---|---|---|
@@ -42,42 +42,22 @@ The compiled frontend is identical for both. Only the runtime data source differ
 - **No collection.** The add-on asks for the `storage` permission only, makes no network requests
   and keeps search in memory.
 
-## Quick start
-
-Requires Node 22.22.2 or newer and pnpm through Corepack:
-
-```bash
-corepack enable
-corepack prepare pnpm@12.2.1 --activate
-pnpm install
-pnpm dev
-```
-
-`pnpm dev` starts Vite in web mode and reads `config.json` from the repository root.
-
 ## Deployment
 
 ### Web (Docker / nginx)
 
 ```bash
-pnpm build
-docker build -t starter-page .
-docker run --rm -p 8080:8080 starter-page
+docker run --rm -p 8080:8080 ghcr.io/caffeinatedpinguin/starter-page:<version>
 ```
 
-`/config.json` is served with `Cache-Control: no-store`. You can replace or shadow-mount it after
-the image is built; a page reload picks it up.
+`/config.json` is served with `Cache-Control: no-store`. You can replace or shadow-mount it in the
+container; a page reload picks it up.
 
 ### Browser add-on
 
-```bash
-pnpm build:all   # -> build/web + build/addon + build/starter-page-addon.zip
-```
-
-Load `build/addon/` as an unpacked extension, or install the released
-`starter-page-v<version>-chromium.zip`. The add-on stores configuration in `browser.storage.local`;
-import a `config.json` from the options page (`options.html`). It accepts the same schema as the web
-app.
+Download `starter-page-v<version>-chromium.zip` from the latest release, unzip it, and load the
+folder as an unpacked extension. The add-on stores configuration in `browser.storage.local`; import a
+`config.json` from the options page (`options.html`). It accepts the same schema as the web app.
 
 ## Configuration
 
@@ -109,11 +89,6 @@ A link is declared once and rendered by any page. User preferences (`entryPage`)
 application data: `localStorage` on the web, extension storage in the add-on, never in `config.json`.
 The `config.json` in the repository root is a complete example.
 
-## Documentation
-
-Start at [docs/index.md](docs/index.md) for the runtime model, the module boundaries and the AMO
-submission guide. For contributor setup and commands, see [CONTRIBUTING.md](CONTRIBUTING.md).
-
 ## Releases
 
 Tagged releases are published on the [GitHub releases page](https://github.com/CaffeinatedPinguin/starter-page/releases):
@@ -122,9 +97,7 @@ Tagged releases are published on the [GitHub releases page](https://github.com/C
 - Container image: `ghcr.io/caffeinatedpinguin/starter-page:<version>`.
 
 Firefox (AMO) builds are submitted manually as unlisted/self-distributed. The signed XPI is attached
-to the matching release after Mozilla approval. See
-[docs/firefox-amo-submission.md](docs/firefox-amo-submission.md) for the checklist and the
-`AMO_JWT_ISSUER` / `AMO_JWT_SECRET` repository secrets.
+to the matching release after Mozilla approval.
 
 ## Security
 
