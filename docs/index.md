@@ -1,6 +1,6 @@
 # starter-page docs index
 
-One line per document: `file — what it owns — read when`. Keep this order and update the page when a file is added, renamed or removed.
+One line per document. Keep this order and update the page when a file is added, renamed or removed.
 
 | File | Owns | Read when |
 |---|---|---|
